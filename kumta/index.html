@@ -350,7 +350,7 @@
   <button onclick="showPage('contact')" data-i18n="contactTileLabel">Visit Us</button>
 </div>
 
-<div class="sx-bar" id="sx-bar"><span class="sx-status" id="sx-status" hidden><span class="sx-dot"></span><span id="sx-status-t"></span></span><div class="sx-ticker" id="sx-ticker" hidden><span class="sx-tlabel">Latest news</span><div class="sx-tview"><div class="sx-ttrack" id="sx-ttrack"></div></div></div><a class="sx-call" href="mailto:dclkarwarbranchkumta@gmail.com" target="_blank" rel="noopener">&#x2709; Email us</a></div>
+<div class="sx-bar" id="sx-bar"><span class="sx-status" id="sx-status" hidden><span class="sx-dot"></span><span id="sx-status-t"></span></span><div class="sx-ticker" id="sx-ticker" hidden><span class="sx-tlabel">Latest news</span><div class="sx-tview"><div class="sx-ttrack" id="sx-ttrack"></div></div></div><button type="button" class="sx-call" style="border:0;cursor:pointer;font-family:inherit;" onclick="sxMailOpen()">&#x2709; Email us</button></div>
 
 <div id="home-welcome">
 
@@ -1481,6 +1481,39 @@ function sxSendFb() {
       b.disabled = false; m.style.color = '#c0392b'; m.textContent = 'Could not send: ' + (e && e.message ? e.message : 'please try again.');
     }).submitSiteFeedback(f);
   } catch (e) { b.disabled = false; m.textContent = 'Could not send. Please try again.'; }
+}
+</script>
+
+<style>
+  .sx-mailbox{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
+  .sx-mailbox.on{display:flex}
+  .sx-mailcard{background:#fff;color:#222;border-radius:14px;max-width:380px;width:100%;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-family:inherit}
+  .sx-mailcard h3{margin:0 0 6px;font-size:18px;color:#1b4b43}
+  .sx-mailcard .addr{display:flex;gap:8px;align-items:center;background:#f4f1e8;border-radius:10px;padding:10px 12px;margin:10px 0 14px;font-weight:700;word-break:break-all;font-size:14px}
+  .sx-mailcard .addr button{margin-left:auto;border:1px solid #1b4b43;background:#fff;color:#1b4b43;border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:700;white-space:nowrap}
+  .sx-mailcard a.mb,.sx-mailcard button.mb{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:11px;margin-bottom:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+  .sx-mailcard .g{background:#1b4b43;color:#fff}.sx-mailcard .o{background:#e9efe9;color:#1b4b43}.sx-mailcard .f{background:#d4a017;color:#1b1408}
+  .sx-mailcard .x{background:none;color:#666;font-weight:400}
+</style>
+<div class="sx-mailbox" id="sx-mailbox" onclick="if(event.target===this)sxMailClose()">
+  <div class="sx-mailcard" role="dialog" aria-label="Email the library">
+    <h3>&#x2709; Write to the library</h3>
+    <div style="font-size:13.5px;color:#555">We keep the library silent, so please write to us. Staff will reply soon.</div>
+    <div class="addr"><span id="sx-mailaddr">dclkarwarbranchkumta@gmail.com</span><button type="button" onclick="sxMailCopy(this)">Copy</button></div>
+    <a class="mb g" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=dclkarwarbranchkumta@gmail.com&amp;su=Message%20to%20the%20library" target="_blank" rel="noopener">Open in Gmail</a>
+    <a class="mb o" href="mailto:dclkarwarbranchkumta@gmail.com?subject=Message%20to%20the%20library">Open my mail app</a>
+    <button type="button" class="mb f" onclick="sxMailClose(); if(typeof sxOpenFb==='function') sxOpenFb();">Send a message here on the website</button>
+    <button type="button" class="mb x" onclick="sxMailClose()">Close</button>
+  </div>
+</div>
+<script>
+function sxMailOpen(){ document.getElementById('sx-mailbox').classList.add('on'); }
+function sxMailClose(){ document.getElementById('sx-mailbox').classList.remove('on'); }
+function sxMailCopy(b){
+  var t=document.getElementById('sx-mailaddr').textContent;
+  function ok(){ b.textContent='Copied \u2713'; setTimeout(function(){ b.textContent='Copy'; },1500); }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(ok,function(){ prompt('Copy this e-mail address:',t); }); }
+  else { prompt('Copy this e-mail address:',t); }
 }
 </script>
 </body>
