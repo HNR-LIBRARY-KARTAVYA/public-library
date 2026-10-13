@@ -238,7 +238,8 @@
   .info-card p { font-size:14px; color:var(--muted); }
   .info-card ul { margin-top:8px; padding-left:18px; font-size:14px; color:var(--muted); }
 
-  footer { background:var(--forest-dark); color:#d8ceb1; padding:36px 24px 24px; }
+  footer { background:linear-gradient(180deg, var(--rib-blue), var(--rib-blue-dark)); color:#efe7d2; border-top:4px solid var(--rib-gold); padding:36px 24px 24px; }
+  @media (max-width:700px) { footer { padding-bottom:84px; } }   /* room for the floating Feedback button */
   .footer-wrap { max-width:1100px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; font-size:13px; }
   .footer-wrap a { text-decoration:none; opacity:0.85; }
   .footer-wrap a:hover { opacity:1; }
@@ -271,7 +272,7 @@
   @media (prefers-reduced-motion: reduce) { .sx-ttrack { animation:none; padding-left:0; white-space:normal; } }
   .sx-call { background:var(--forest); color:#fff !important; text-decoration:none; font-size:13px; font-weight:700; padding:6px 12px; border-radius:8px; white-space:nowrap; }
   @media (max-width:600px) { .sx-ticker { order:3; flex-basis:100%; } .sx-call { margin-left:auto; } .sx-fbbtn { padding:8px 12px; font-size:13px; } }
-  .sx-visits { font-size:13px; color:#d8ceb1; margin-top:12px; text-align:center; opacity:.9; }
+  .sx-visits { font-size:13px; color:#efe7d2; margin-top:12px; text-align:center; opacity:.9; }
   .sx-visits b { color:#fff; }
   .sx-fbbtn { position:fixed; right:16px; bottom:16px; z-index:80; background:var(--brass); color:#1b1408; border:0; border-radius:24px; padding:10px 16px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.25); font-family:inherit; }
   .sx-modal { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:90; display:flex; align-items:flex-start; justify-content:center; padding:30px 12px; overflow:auto; }
