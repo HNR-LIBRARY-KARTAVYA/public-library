@@ -338,6 +338,8 @@
   <button class="active" onclick="showHome()" data-i18n="homeBtn">Home</button>
   <button onclick="showPage('papers')" data-i18n="papersTileLabel">Today's Papers</button>
   <button onclick="showPage('search')" data-i18n="searchTileLabel">Search Books</button>
+  <button onclick="location.href='./corner/'" data-i18n="cornerTileLabel">Readers' Corner</button>
+  <button onclick="location.href='./exams/'" data-i18n="examTileLabel">Competitive Exams</button>
   <button onclick="showPage('newarrivals')" data-i18n="naTileLabel">New Arrivals</button>
   <button onclick="showPage('about')" data-i18n="aboutTileLabel">Membership</button>
   <button onclick="showPage('glance')" data-i18n="glanceTileLabel">This Month</button>
@@ -578,6 +580,7 @@
     <input type="text" id="pub-search-name" class="form-input" data-i18n-ph="dateSearchNamePh" placeholder="Newspaper or magazine name..." style="flex:2; min-width:180px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); font-family:inherit; font-size:14px;">
     <input type="date" id="pub-search-date" style="flex:1; min-width:150px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); font-family:inherit; font-size:14px;">
     <button class="btn btn-primary" onclick="checkPublicationDate()" data-i18n="dateSearchBtn" style="flex-shrink:0;">Check</button>
+    <button class="btn btn-outline" type="button" onclick="clearPublicationDate()" data-i18n="clearBtn" style="flex-shrink:0;">Clear</button>
   </div>
   <div id="pub-search-result"></div>
 
@@ -609,6 +612,8 @@
   </div>
   <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
     <input type="text" id="postal-search" class="form-input" data-i18n-ph="postalSearchPh" placeholder="Search postal magazine name..." style="flex:2; min-width:180px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); font-family:inherit; font-size:14px;" oninput="renderPostalList()">
+    <button class="btn btn-primary" type="button" onclick="document.getElementById('postal-select').value='';renderPostalList()" data-i18n="searchBtn" style="flex-shrink:0;">Search</button>
+    <button class="btn btn-outline" type="button" onclick="clearPostalSearch()" data-i18n="clearBtn" style="flex-shrink:0;">Clear</button>
     <select id="postal-select" style="flex:1; min-width:150px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); font-family:inherit; font-size:14px;" onchange="onPostalSelect()"></select>
   </div>
   <div class="rank-list" id="postal-content"><div class="empty-note" data-i18n="postalEmpty">Loading&#x2026;</div></div>
@@ -725,6 +730,8 @@
     <div style="display:flex; gap:18px; flex-wrap:wrap;">
       <a href="https://hnr-library-kartavya.github.io/public-library/honavar/gate/" target="_blank" rel="noopener" data-i18n="gateEntryLink">Gate Check-In</a>
       <a href="https://hnr-library-kartavya.github.io/public-library/honavar/my/" target="_blank" rel="noopener">My Library (my books, renew, reserve)</a>
+      <a href="./corner/">Readers' Corner</a>
+      <a href="./exams/">Competitive Exams</a>
       <a href="https://docs.google.com/forms/d/e/1FAIpQLScZxe7IhkzmoDfDWXdT0JL-MCD-_QeJbthykynKq86wzszsnw/viewform" target="_blank" rel="noopener" data-i18n="memberFormLink">Apply for Membership</a>
       <a href="https://docs.google.com/forms/d/e/1FAIpQLScT1jCgbay7JE1smm_5M0IggysYjwy72q8bctqI8x0KxIpS7g/viewform" target="_blank" rel="noopener">Register as Visitor</a>
       <a href="https://script.google.com/macros/s/AKfycbzO6zj91T5nxDyVjSjmJ4GUhvxIZQcjyOSEAvljyyg5LY5Zs92F-8pAJIGEOUbVRVvT/exec" target="_blank" rel="noopener" data-i18n="staffLogin">Staff Login &#x2192;</a>
@@ -782,24 +789,17 @@
         const avail = b.status === 'Available';
         const div = document.createElement('div');
         div.className = 'book-card';
-        div.innerHTML = `<div style="flex:1;"><div class="title">${b.title}</div><div class="meta">${b.author}</div><div class="chip-row">${bookDetailChips_(b)}</div></div><span class="badge ${avail ? 'badge-avail' : 'badge-out'}">${avail ? 'On the shelf' : 'Checked out'}</span>`;
+        div.innerHTML = `<div style="flex:1;"><div class="title">${b.title}</div><div class="meta">${b.author}</div><div class="chip-row">${bookDetailChips_(b)}</div><button type="button" class="btn-outline bcl-full-btn" data-acc="${String(b.accNo || b.id || '').replace(/"/g,'&quot;')}" onclick="bclFull_(this)" style="margin-top:6px;padding:4px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">All details</button><div class="bcl-full"></div></div><span class="badge ${avail ? 'badge-avail' : 'badge-out'}">${avail ? 'On the shelf' : 'Checked out'}</span>`;
         container.appendChild(div);
       });
     }
 
     if (field) {
       // Field-specific search - new addition, doesn't touch the default path below.
-      google.script.run.withSuccessHandler(renderBooks)
-        .withFailureHandler(function() {
-          container.innerHTML = '<div class="empty-note">Search is temporarily unavailable \u2014 please try again shortly.</div>';
-        }).publicSearchBooksByField(q, field);
+      bclBookSearch_(q, field, renderBooks, container);   // Kannada / English letters (KnSearch.gs)
     } else {
       // Default "All Fields" search - exactly as before, unchanged.
-      google.script.run.withSuccessHandler(function(result) {
-        renderBooks(result ? result.books : []);
-      }).withFailureHandler(function() {
-        container.innerHTML = '<div class="empty-note">Search is temporarily unavailable \u2014 please try again shortly.</div>';
-      }).searchBooks(q, '', 20, 0);
+      bclBookSearch_(q, '', renderBooks, container);      // Kannada / English letters (KnSearch.gs)
     }
   }
 
@@ -908,7 +908,7 @@
       titleMinister2: "Hon. Education Minister",
       titleCommissioner2: "Commissioner",
       titleDD2: "Deputy Director", titleCM: "Hon. Chief Minister",
-      darkMode: "Dark", navAdmin: "Staff Login"
+      darkMode: "Dark", navAdmin: "Staff Login", cornerTileLabel: "Readers' Corner", examTileLabel: "Competitive Exams", clearBtn: "Clear", allDetails: "All details"
     },
     kn: {
       navSearch: "\u0CAA\u0CC1\u0CB8\u0CCD\u0CA4\u0C95 \u0CB9\u0CC1\u0CA1\u0CC1\u0C95\u0CBF", navPapers: "\u0C87\u0C82\u0CA6\u0CBF\u0CA8 \u0CAA\u0CA4\u0CCD\u0CB0\u0CBF\u0C95\u0CC6\u0C97\u0CB3\u0CC1", navAbout: "\u0CB8\u0CA6\u0CB8\u0CCD\u0CAF\u0CA4\u0CCD\u0CB5", navGallery: "\u0C97\u0CCD\u0CAF\u0CBE\u0CB2\u0CB0\u0CBF", navContact: "\u0CAD\u0CC7\u0C9F\u0CBF \u0CA8\u0CC0\u0CA1\u0CBF",
@@ -979,7 +979,7 @@
       titleMinister2: "\u0C97\u0CCC\u0CB0\u0CB5\u0CBE\u0CA8\u0CCD\u0CB5\u0CBF\u0CA4 \u0CB6\u0CBF\u0C95\u0CCD\u0CB7\u0CA3 \u0CB8\u0CBE\u0CAE\u0CB1\u0CBE\u0CA1\u0CAF",
       titleCommissioner2: "\u0C86\u0CAF\u0CC1\u0C95\u0CCD\u0CA4\u0CB0\u0CC1",
       titleDD2: "\u0C89\u0CAA \u0CA8\u0CBF\u0CB0\u0CCD\u0CA6\u0CC7\u0CB6\u0C95\u0CB0\u0CC1", titleCM: "\u0C97\u0CCC\u0CB0\u0CB5\u0CBE\u0CA8\u0CCD\u0CB5\u0CBF\u0CA4 \u0CAE\u0CC1\u0C96\u0CCD\u0CAF\u0CAE\u0C82\u0CA4\u0CCD\u0CB0\u0CBF",
-      darkMode: "\u0C95\u0CA4\u0CCD\u0CA4\u0CB2\u0CC1", navAdmin: "\u0CB8\u0CBF\u0CAC\u0CCD\u0CAC\u0C82\u0CA6\u0CBF \u0CB2\u0CBE\u0C97\u0CBF\u0CA8\u0CCD"
+      darkMode: "\u0C95\u0CA4\u0CCD\u0CA4\u0CB2\u0CC1", navAdmin: "\u0CB8\u0CBF\u0CAC\u0CCD\u0CAC\u0C82\u0CA6\u0CBF \u0CB2\u0CBE\u0C97\u0CBF\u0CA8\u0CCD", cornerTileLabel: "\u0c93\u0ca6\u0cc1\u0c97\u0cb0 \u0cae\u0cc2\u0cb2\u0cc6", examTileLabel: "\u0cb8\u0ccd\u0caa\u0cb0\u0ccd\u0ca7\u0cbe\u0ca4\u0ccd\u0cae\u0c95 \u0caa\u0cb0\u0cc0\u0c95\u0ccd\u0cb7\u0cc6\u0c97\u0cb3\u0cc1", clearBtn: "\u0ca4\u0cc6\u0cb0\u0cb5\u0cc1\u0c97\u0cca\u0cb3\u0cbf\u0cb8\u0cbf", allDetails: "\u0caa\u0cc2\u0cb0\u0ccd\u0ca3 \u0cb5\u0cbf\u0cb5\u0cb0"
     }
   };
 
@@ -1181,7 +1181,7 @@
     const picked = document.getElementById('postal-select').value;
     let list = postalItems;
     if (picked) list = list.filter(m => m.name === picked);
-    else if (q) list = list.filter(m => m.name.toLowerCase().indexOf(q) !== -1);
+    else if (q) { const kw = knWords_(q); list = list.filter(m => knMatch_(m.name, kw) > 0); }
     const el = document.getElementById('postal-content');
     if (!list.length) { el.innerHTML = '<div class="empty-note">No matching postal magazine.</div>'; return; }
     el.innerHTML = '';
@@ -1515,6 +1515,125 @@ function sxMailCopy(b){
   function ok(){ b.textContent='Copied \u2713'; setTimeout(function(){ b.textContent='Copy'; },1500); }
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(ok,function(){ prompt('Copy this e-mail address:',t); }); }
   else { prompt('Copy this e-mail address:',t); }
+}
+</script>
+
+<script>
+// ================================================================
+// KANNADA + ENGLISH LETTER SEARCH (25 Oct 2026)
+// Type a word in Kannada letters or in English letters: both find the
+// book or the name. karanta, kaaranta, karanth and ka-ra-nta all
+// find the same book. The sheet is never changed: the Kannada text is
+// turned into English letters only while searching.
+// ================================================================
+var KN_V_ = { '\u0c85': 'a', '\u0c86': 'aa', '\u0c87': 'i', '\u0c88': 'ii', '\u0c89': 'u', '\u0c8a': 'uu', '\u0c8b': 'ru', '\u0ce0': 'ru',
+  '\u0c8c': 'lu', '\u0c8e': 'e', '\u0c8f': 'e', '\u0c90': 'ai', '\u0c92': 'o', '\u0c93': 'o', '\u0c94': 'au' };
+var KN_S_ = { '\u0cbe': 'aa', '\u0cbf': 'i', '\u0cc0': 'ii', '\u0cc1': 'u', '\u0cc2': 'uu', '\u0cc3': 'ru', '\u0cc4': 'ru', '\u0cc6': 'e', '\u0cc7': 'e',
+  '\u0cc8': 'ai', '\u0cca': 'o', '\u0ccb': 'o', '\u0ccc': 'au' };
+var KN_C_ = { '\u0c95': 'k', '\u0c96': 'kh', '\u0c97': 'g', '\u0c98': 'gh', '\u0c99': 'n', '\u0c9a': 'c', '\u0c9b': 'ch', '\u0c9c': 'j', '\u0c9d': 'jh',
+  '\u0c9e': 'n', '\u0c9f': 't', '\u0ca0': 'th', '\u0ca1': 'd', '\u0ca2': 'dh', '\u0ca3': 'n', '\u0ca4': 't', '\u0ca5': 'th', '\u0ca6': 'd', '\u0ca7': 'dh',
+  '\u0ca8': 'n', '\u0caa': 'p', '\u0cab': 'ph', '\u0cac': 'b', '\u0cad': 'bh', '\u0cae': 'm', '\u0caf': 'y', '\u0cb0': 'r', '\u0cb1': 'r', '\u0cb2': 'l',
+  '\u0cb3': 'l', '\u0cde': 'l', '\u0cb5': 'v', '\u0cb6': 'sh', '\u0cb7': 'sh', '\u0cb8': 's', '\u0cb9': 'h' };
+
+/** Kannada letters -> English letters (other letters stay as they are). */
+function knLatin_(s) {
+  s = String(s == null ? '' : s);
+  if (!/[\u0c80-\u0cff]/.test(s)) return s;
+  var out = '', pend = false;                       // pend = a consonant waiting for its vowel
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i), code = s.charCodeAt(i);
+    if (KN_C_[ch]) { if (pend) out += 'a'; out += KN_C_[ch]; pend = true; continue; }
+    if (KN_S_[ch]) { out += KN_S_[ch]; pend = false; continue; }
+    if (ch === '\u0ccd') { pend = false; continue; }                        // virama: no vowel
+    if (ch === '\u0cbc' || ch === '\u200c' || ch === '\u200d' || ch === '\u0cd5' || ch === '\u0cd6') continue;
+    if (pend) { out += 'a'; pend = false; }
+    if (KN_V_[ch]) out += KN_V_[ch];
+    else if (ch === '\u0c82') out += 'n';                                    // anusvara
+    else if (ch === '\u0c83') out += 'h';                                    // visarga
+    else if (code >= 0x0ce6 && code <= 0x0cef) out += String(code - 0x0ce6);  // Kannada digits
+    else out += ch;
+  }
+  if (pend) out += 'a';
+  return out;
+}
+
+/** A forgiving sound key: the same for every usual spelling of a word. */
+function knKey_(s) {
+  s = knLatin_(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+  s = s.replace(/ksh/g, 'ks').replace(/x/g, 'ks').replace(/([kgcjtdpb])h/g, '$1').replace(/sh/g, 's')
+    .replace(/f/g, 'p').replace(/w/g, 'v').replace(/z/g, 'j').replace(/q/g, 'k')
+    .replace(/([^aeiou\s])r[iu]/g, '$1r')
+    .replace(/([^aeiou\s])y(?=[^aeiou\s]|$)/g, '$1ai')
+    .replace(/ee/g, 'i').replace(/oo/g, 'u')
+    .replace(/([a-z])\1+/g, '$1')
+    .replace(/m(?=[bcdgjklnprstvy])/g, 'n');
+  return s.trim();
+}
+
+/** Search words -> [{w: plain lower word, k: sound key}]. */
+function knWords_(q) {
+  return String(q == null ? '' : q).toLowerCase().split(/\s+/).filter(Boolean).map(function (w) {
+    var k = knKey_(w).replace(/ /g, '');
+    if (k.length >= 4 && /[aeiou]$/.test(k) && !/^[0-9]/.test(k)) k = k.slice(0, -1);   // karanta = karanth
+    return { w: w, k: k };
+  });
+}
+
+/** 2 = every search word is in the text as typed, 1 = found by sound
+ *  (Kannada or English letters), 0 = not found. */
+function knMatch_(text, words, keyMemo) {
+  if (!words.length) return 2;
+  var low = String(text == null ? '' : text).toLowerCase(), key = null, how = 2;
+  for (var i = 0; i < words.length; i++) {
+    if (low.indexOf(words[i].w) >= 0) continue;
+    how = 1;
+    if (!words[i].k) return 0;
+    if (key === null) {
+      if (keyMemo && keyMemo.hasOwnProperty(low)) key = keyMemo[low];
+      else { key = knKey_(low).replace(/ /g, ''); if (keyMemo) keyMemo[low] = key; }
+    }
+    if (key.indexOf(words[i].k) < 0) return 0;
+  }
+  return how;
+}
+</script>
+<script>
+// ===== 25 Oct 2026: All details of a book, Clear buttons (admin API: BclPublic.gs) =====
+var BCL_ADMIN_API = 'https://script.google.com/macros/s/AKfycbwIc6HXYxQoWzhJq9AcPv6uvrn8RXJ71-577cB6GNdTf03VEig29iM-LLhafmAgiaGvPg/exec';
+function bclEsc_(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function bclFull_(btn){
+  var box = btn.nextElementSibling, acc = btn.getAttribute('data-acc');
+  if(box.innerHTML){ box.innerHTML=''; btn.textContent='All details'; return; }
+  btn.disabled = true; btn.textContent = 'Loading...';
+  fetch(BCL_ADMIN_API,{method:'POST',credentials:'omit',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:'bclBookFull',args:[acc]})})
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      btn.disabled = false;
+      if(!j || !j.ok) throw new Error((j && j.error) || 'Not found');
+      btn.textContent = 'Hide details';
+      box.innerHTML = '<table style="margin-top:6px;border-collapse:collapse;font-size:13px;">' + j.result.fields.map(function(f){
+        return '<tr><td style="padding:2px 12px 2px 0;color:var(--muted,#666);white-space:nowrap;vertical-align:top;">'+bclEsc_(f.heading)+'</td><td style="padding:2px 0;">'+bclEsc_(f.value)+'</td></tr>'; }).join('') + '</table>';
+    })
+    .catch(function(e){ btn.disabled = false; btn.textContent = 'All details'; box.innerHTML = '<div class="empty-note">'+bclEsc_(e.message||e)+'</div>'; });
+}
+// Book search: every word in Kannada or English letters (karanta = kaaranta = the Kannada word)
+function bclBookSearch_(q, field, done, box){
+  fetch(BCL_ADMIN_API,{method:'POST',credentials:'omit',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:'bclSearchBooks',args:[q, field]})})
+    .then(function(r){ return r.json(); })
+    .then(function(j){ if(!j || !j.ok) throw new Error((j && j.error) || 'error'); done(j.result || []); })
+    .catch(function(){ box.innerHTML = '<div class="empty-note">Search is temporarily unavailable — please try again shortly.</div>'; });
+}
+function clearPublicationDate(){
+  document.getElementById('pub-search-name').value = '';
+  document.getElementById('pub-search-date').value = '';
+  document.getElementById('pub-search-result').innerHTML = '';
+  document.getElementById('pub-search-name').focus();
+}
+function clearPostalSearch(){
+  document.getElementById('postal-search').value = '';
+  document.getElementById('postal-select').value = '';
+  renderPostalList();
+  document.getElementById('postal-search').focus();
 }
 </script>
 </body>
