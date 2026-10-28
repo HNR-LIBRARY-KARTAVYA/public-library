@@ -115,6 +115,7 @@
   <div class="hint">Press Enter after scanning or typing</div>
   <div style="margin-top:14px; font-size:13px; opacity:.8;">Don't have your card? Search by name below</div>
   <input type="text" id="nameSearchInput" placeholder="Type your name..." style="margin-top:8px;" oninput="gateNameSearchBox()" onkeydown="if(event.key==='Enter')gateNameSearchEnter()">
+  <div style="margin-top:6px;display:flex;gap:8px;justify-content:center;"><button type="button" onclick="gateNameSearchBox()" style="padding:6px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:600;">Search</button><button type="button" onclick="document.getElementById('nameSearchInput').value='';document.getElementById('nameSearchResults').innerHTML='';gateNameResults=[];document.getElementById('nameSearchInput').focus();" style="padding:6px 14px;border-radius:8px;border:1px solid #ccc;background:transparent;color:inherit;cursor:pointer;">Clear</button></div>
   <div id="nameSearchResults" style="margin-top:6px;"></div>
 </div>
 
@@ -158,7 +159,7 @@
         box.innerHTML = list.map(function(p){
           return '<div class="name-result-item" onclick="gateNamePickBox(\''+p.id+'\')"><b>'+p.name+'</b><span>'+p.type+' \u2022 ID '+p.id+'</span></div>';
         }).join('');
-      }).searchPeopleByName(q);
+      }).bclPeopleByName(q);
     }, 300);
   }
   function gateNameSearchEnter(){
