@@ -78,7 +78,7 @@ footer a{color:var(--c1)}
 <header><div class="hin">
   <div class="top">
     <h1>My Library <span style="font-weight:400">&#xB7; &#x0CA8;&#x0CA8;&#x0CCD;&#x0CA8; &#x0C97;&#x0CCD;&#x0CB0;&#x0C82;&#x0CA5;&#x0CBE;&#x0CB2;&#x0CAF;</span><small>District Central Library, Karwar &#xB7; Branch: Kumta</small></h1>
-    <a class="back" href="../" >&#x2190; Website</a>
+    <a class="back" href="../corner/" style="margin-right:6px">&#127912; Readers' Corner</a><a class="back" href="../exams/" style="margin-right:6px">&#127891; Exams</a><a class="back" href="../" >&#x2190; Website</a>
   </div>
   <nav>
     <button data-p="search" class="on">Search &amp; Reserve<small>&#x0CB9;&#x0CC1;&#x0CA1;&#x0CC1;&#x0C95;&#x0CBF;</small></button>
@@ -91,7 +91,7 @@ footer a{color:var(--c1)}
   <section class="pane on" id="p-search">
     <div class="card">
       <h2>Search our books</h2>
-      <div class="row"><input id="q" placeholder="Title, author or Acc No - English or Kannada" autocomplete="off"><button class="b" id="qBtn">Search</button></div>
+      <div class="row"><input id="q" placeholder="Title, author or Acc No - English or Kannada" autocomplete="off"><button class="b" id="qBtn">Search</button><button class="b2" id="qClr" type="button">Clear</button></div>
       <div class="tip">Issued book? Tap <b>Reserve</b> - we e-mail you when it is back and keep it for you for 3 days.</div>
       <div id="qMsg" class="msg"></div>
     </div>
@@ -155,16 +155,29 @@ footer a{color:var(--c1)}
   function search(){
     var q=$('q').value.trim(); if(q.length<2){ msg('qMsg','Type at least 2 letters.','bad'); return; }
     msg('qMsg','Searching...'); $('qBtn').disabled=true;
-    call('mpSearch',[q],function(r){
+    call('bclMpSearch',[q],function(r){
       $('qBtn').disabled=false; msg('qMsg', r.total ? (r.total+' book(s) found'+(r.total>r.results.length?' - showing the first '+r.results.length+'. Type more words to narrow down.':'')) : 'No books found. Try a shorter word, or the author name.');
       var box=$('qRes'); box.style.display=r.results.length?'block':'none';
       box.innerHTML=r.results.map(function(b){
         return '<div class="item"><div><div class="t">'+esc(b.title)+'</div><div class="a">'+esc(b.author)+'</div><div class="meta">Acc No '+esc(b.acc)+(b.shelf?' &#xB7; Shelf '+esc(b.shelf):'')+'</div><div style="margin-top:4px">'+statusPill(b)+'</div></div>'+
-          '<div><button class="b2" data-res="'+esc(b.acc)+'">Reserve</button></div></div>';
+          '<div><button class="b2" data-res="'+esc(b.acc)+'">Reserve</button><br><button class="b2" style="margin-top:6px" data-full="'+esc(b.acc)+'">All details</button></div></div>'+
+          '<div class="bclfx" data-for="'+esc(b.acc)+'" style="display:none"></div>';
       }).join('');
     },function(m){ $('qBtn').disabled=false; msg('qMsg',m,'bad'); });
   }
   $('qBtn').onclick=search; $('q').addEventListener('keydown',function(e){ if(e.key==='Enter') search(); });
+  // 25 Oct 2026: Clear, and All details (every heading of the Books Catalogue, price left out)
+  $('qClr').onclick=function(){ $('q').value=''; msg('qMsg',''); $('qRes').innerHTML=''; $('qRes').style.display='none'; $('q').focus(); };
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-full]'); if(!b) return;
+    var acc=b.getAttribute('data-full'), box=document.querySelector('.bclfx[data-for="'+acc.replace(/"/g,'')+'"]'); if(!box) return;
+    if(box.style.display!=='none'){ box.style.display='none'; box.innerHTML=''; b.textContent='All details'; return; }
+    b.disabled=true; b.textContent='Loading...';
+    call('bclBookFull',[acc],function(r){
+      b.disabled=false; b.textContent='Hide details'; box.style.display='block';
+      box.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px;margin:0 0 10px">'+r.fields.map(function(f){ return '<tr><td style="padding:3px 10px 3px 0;color:#666;white-space:nowrap;vertical-align:top;border-bottom:1px solid #eee">'+esc(f.heading)+'</td><td style="padding:3px 0;border-bottom:1px solid #eee">'+esc(f.value)+'</td></tr>'; }).join('')+'</table>';
+    },function(m){ b.disabled=false; b.textContent='All details'; alert(m); });
+  });
   document.addEventListener('click',function(e){
     var b=e.target.closest('[data-res]'); if(!b) return;
     if(!token){ alert('Please log in to My Account first - it takes one minute.'); show('account'); return; }
@@ -183,7 +196,8 @@ footer a{color:var(--c1)}
       $('lists').innerHTML = lists.length ? lists.map(function(l){
         return '<div class="card"><h2>'+esc(l.name)+'</h2>'+(l.desc?'<p class="a" style="margin-bottom:6px">'+esc(l.desc)+'</p>':'')+
           l.items.map(function(b){ return '<div class="item"><div><div class="t">'+esc(b.title)+'</div><div class="a">'+esc(b.author)+'</div><div class="meta">Acc No '+esc(b.acc)+(b.shelf?' &#xB7; Shelf '+esc(b.shelf):'')+'</div><div style="margin-top:4px">'+statusPill(b)+'</div></div>'+
-            '<div><button class="b2" data-res="'+esc(b.acc)+'">Reserve</button></div></div>'; }).join('')+'</div>';
+            '<div><button class="b2" data-res="'+esc(b.acc)+'">Reserve</button><br><button class="b2" style="margin-top:6px" data-full="'+esc(b.acc)+'">All details</button></div></div>'+
+          '<div class="bclfx" data-for="'+esc(b.acc)+'" style="display:none"></div>'; }).join('')+'</div>';
       }).join('') : '<div class="card">No book lists yet. Please check again soon.</div>';
     },function(m){ $('lists').innerHTML='<div class="card msg bad">'+esc(m)+'</div>'; });
   }
@@ -235,9 +249,13 @@ footer a{color:var(--c1)}
        '<label>Why (optional)</label><input id="sWhy"><div style="margin-top:10px"><button class="b" id="sBtn">Send suggestion</button></div><div id="sMsg" class="msg"></div>'+
        (a.suggestions.length?'<details style="margin-top:10px"><summary>My suggestions ('+a.suggestions.length+')</summary>'+a.suggestions.map(function(s){
           return '<div class="item"><div><div class="t">'+esc(s.title)+'</div><div class="meta">'+esc(s.author)+' &#xB7; '+esc(s.date)+'</div></div><span class="pill gr">'+esc(s.status)+'</span></div>'; }).join('')+'</details>':'')+'</div>';
+    h+='<div class="card"><details id="bclMy"><summary>My details in the library register (all headings)</summary><div class="a" id="bclMyBox">Loading...</div></details></div>';
     h+='<div class="card"><details><summary>My reading history ('+a.historyCount+' books)</summary>'+(a.history.length? a.history.map(function(x){
         return '<div class="item"><div><div class="t">'+esc(x.title)+'</div><div class="meta">'+esc(x.author)+' &#xB7; '+esc(x.issueDate)+' to '+esc(x.returnDate)+'</div></div></div>'; }).join('') : '<p class="a">No history yet.</p>')+'</details></div>';
     $('acct').innerHTML=h;
+    $('bclMy').addEventListener('toggle',function(){ if(!this.open || this.getAttribute('data-done')) return; var d=this; d.setAttribute('data-done','1');
+      call('bclMyRecord',[token],function(r){ $('bclMyBox').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px">'+r.fields.map(function(f){ return '<tr><td style="padding:3px 10px 3px 0;color:#666;white-space:nowrap;vertical-align:top;border-bottom:1px solid #eee">'+esc(f.heading)+'</td><td style="padding:3px 0;border-bottom:1px solid #eee">'+esc(f.value)+'</td></tr>'; }).join('')+'</table><div class="meta" style="margin-top:6px">If something is wrong, please tell the library counter.</div>'; },
+        function(m){ d.removeAttribute('data-done'); $('bclMyBox').textContent=m; }); });
     $('logout').onclick=function(){ call('mpLogout',[token],function(){}); logoutLocal(); showLogin(); };
     $('sBtn').onclick=function(){
       var t=$('sTitle').value.trim(); if(t.length<2){ msg('sMsg','Please type the title.','bad'); return; }
