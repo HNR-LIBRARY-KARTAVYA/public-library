@@ -4,7 +4,7 @@
 <script>
 // ===== GitHub Pages bridge: makes google.script.run talk to the Apps Script API (PublicApi.gs) =====
 (function () {
-  var API = 'https://script.google.com/macros/s/AKfycbzO6zj91T5nxDyVjSjmJ4GUhvxIZQcjyOSEAvljyyg5LY5Zs92F-8pAJIGEOUbVRVvT/exec';
+  var API = 'https://script.google.com/macros/s/AKfycbxdTvIICxdP4LcKxWhivPfz2jvu3wK8AZhngKz2B4wFSIH7w9T6CCpiMFyANr3xoPc/exec';
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', credentials: 'omit', redirect: 'follow',
                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
