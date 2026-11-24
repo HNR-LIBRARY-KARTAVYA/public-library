@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New Book Desk</title>
+<style>
+:root{--navy:#14306b;--gold:#d9a521;--bg:#f3f5f9;--line:#d5dbea;--ok:#1b7a3a;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans","Noto Sans Kannada",Arial,sans-serif;background:var(--bg);color:#1b2540}
+header{background:var(--navy);color:#fff;padding:12px 18px;border-bottom:4px solid var(--gold)}
+header h1{margin:0;font-size:20px}header small{opacity:.85;font-size:13px}
+.trial{background:#fff4d6;border-bottom:1px solid #e5c76b;padding:8px 18px;font-size:13px}
+.wrap{max-width:1100px;margin:0 auto;padding:14px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.steps div{flex:1;min-width:120px;padding:8px;border-radius:8px;background:#e6eaf5;font-size:13px;text-align:center}
+.steps .on{background:var(--navy);color:#fff;font-weight:bold}.steps .done{background:#d9f5e3}
+.box{background:#fff;border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px #0002}
+h2{margin:0 0 8px;color:var(--navy);font-size:18px}
+button{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:12px 16px;font-size:16px;cursor:pointer}
+button.g{background:var(--ok)}button.s{background:#7a869f}button.y{background:var(--gold);color:#1b2540;font-weight:bold}button.r{background:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:180px}
+label{display:block;font-size:12px;font-weight:bold;color:#3b4a75;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;font-size:16px;border:1px solid #b7c0d6;border-radius:8px;font-family:inherit}
+textarea{min-height:70px}
+.doctypes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.doctypes button{padding:16px 10px;font-size:15px;line-height:1.3}
+.doctypes small{display:block;font-weight:normal;opacity:.85;font-size:12px}
+.docs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.doc{border:1px solid var(--line);border-radius:8px;padding:6px;width:210px;background:#fafbff;font-size:12px}
+.doc img{width:100%;height:110px;object-fit:cover;border-radius:6px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;background:#dfe7ff;margin:2px 2px 0 0}
+.tag.ok{background:#d9f5e3}.tag.w{background:#ffe9c7}
+#cam{position:fixed;inset:0;background:#000d;display:none;z-index:50;align-items:center;justify-content:center;padding:10px}
+#cam .in{background:#fff;border-radius:12px;max-width:880px;width:100%;padding:12px;max-height:100%;overflow:auto}
+.vwrap{position:relative;background:#000;border-radius:8px;overflow:hidden}
+video{width:100%;max-height:60vh;display:block;background:#000}
+.guide{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.guide div{border:3px dashed #ffd24a;border-radius:10px}
+.msg{padding:9px 12px;border-radius:8px;margin-top:8px;font-size:14px}
+.msg.ok{background:#d9f5e3}.msg.w{background:#fff4d6}.msg.er{background:#ffdede}.msg.i{background:#e8efff}
+.src{font-size:10px;font-weight:normal;color:#6a7899;margin-left:4px}
+.lines{max-height:170px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px;background:#fafbff;font-size:13px}
+.lines div{padding:3px 6px;border-radius:5px;cursor:pointer}.lines div:hover{background:#e8efff}
+.sigprev{background:#fff;border:1px solid var(--line);border-radius:8px;height:110px;display:flex;align-items:center;justify-content:center}
+#sigpad{border:2px dashed #9aa6c8;border-radius:8px;background:#fff;touch-action:none;width:100%;height:170px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;border-bottom:1px solid var(--line);text-align:left}th{background:var(--navy);color:#fff}
+#pa{display:none}
+@media print{body>*:not(#pa){display:none!important}#pa{display:block!important}}
+.pr{font-family:"Noto Sans",Arial,sans-serif;padding:14mm;color:#000}
+.pr h1{font-size:18px;margin:0;text-align:center}.pr h2{font-size:14px;text-align:center;margin:2px 0 10px;color:#000}
+.pr table td{border:1px solid #888;padding:6px;font-size:13px}.pr table td:first-child{width:34%;font-weight:bold;background:#f0f0f0}
+</style>
+<style>
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.slot{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fafbff}
+.slot .pv{height:130px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px dashed #9aa6c8;border-radius:8px;margin:6px 0;overflow:hidden;color:#6a7899;font-size:13px}
+.slot .pv img{max-width:100%;max-height:100%}
+.fbtn{display:inline-block;background:var(--navy);color:#fff;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:14px;margin:2px 2px 0 0}
+.fbtn.s{background:#7a869f}.fbtn input{display:none}
+.ok{color:#1b7a3a}.er{color:#b3261e}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabs button{background:#e8ecf7;color:var(--navy);border:1px solid #c5cde6}
+.tabs button.on{background:var(--navy);color:#fff}
+.tiles{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.tile{padding:11px 16px;border:2px solid #c5cde6;border-radius:10px;background:#fff;color:var(--navy);cursor:pointer;font-size:15px}
+.tile.on{background:var(--gold);border-color:var(--navy);font-weight:bold}
+table.bt{width:100%;border-collapse:collapse;font-size:13px}
+table.bt th,table.bt td{border-bottom:1px solid var(--line);padding:5px;text-align:left;vertical-align:top}
+table.bt img{width:42px;border-radius:4px}
+.flag{display:inline-block;background:#fde8e6;color:#b3261e;border-radius:6px;padding:1px 6px;margin:1px;font-size:12px}
+.flag.w{background:#fff3d6;color:#8a5a00}
+</style></head><body>
+<header><h1>New Book Desk</h1><small>ಹೊಸ ಪುಸ್ತಕ ನೋಂದಣಿ - batch entry</small></header>
+<div class="trial" id="bar">
+  <div class="row" style="align-items:flex-end">
+    <div style="max-width:170px"><label>Kiosk PIN</label><input id="pin" type="password" autocomplete="off" placeholder="PIN"></div>
+    <div style="max-width:220px"><label>Entered by (your name)</label><input id="enteredBy" placeholder="Staff name"></div>
+    <div style="flex:2;min-width:200px"><button class="g" onclick="saveLogin()">Connect</button> <span id="nextId" style="margin-left:8px;font-size:13px"></span></div>
+  </div>
+  <div id="apiMsg" style="font-size:13px;margin-top:4px"></div>
+</div>
+<div class="wrap">
+<div class="tabs" id="tabs">
+  <button id="t1" onclick="tab(1)">1  Batch settings</button>
+  <button id="t2" onclick="tab(2)">2  Add books <span id="n2"></span></button>
+  <button id="t3" onclick="tab(3)">3  Verify and submit <span id="n3"></span></button>
+</div>
+
+<!-- 1: batch settings -->
+<div id="p1" class="box">
+  <h2>Batch settings / ಈ ಗುಂಪಿನ ಸಾಮಾನ್ಯ ವಿವರ</h2>
+  <p style="margin:0 0 6px">These are common to all the books of this batch. Set them once. The accession numbers are given when you submit the batch.</p>
+  <div class="row">
+    <div><label>Starting accession no.</label><input id="b_start" inputmode="numeric" onchange="batchChg()"><small id="nextHint"></small></div>
+    <div><label>Date of entry</label><input id="b_date" type="date" onchange="batchChg()"></div>
+    <div><label>Year (financial year)</label><select id="b_fy" onchange="batchChg()"></select></div>
+    <div><label>Language</label><input id="b_lang" value="Kannada" onchange="batchChg()"></div>
+  </div>
+  <label>How obtained / ಪಡೆದ ವಿಧಾನ</label>
+  <div class="tiles" id="howTiles"></div>
+  <label style="margin-top:8px">Donor / supplier name (optional)</label><input id="b_source" onchange="batchChg()">
+  <p style="margin-top:12px"><button class="s" onclick="useNext()">Use next free number</button> <button class="r" onclick="newBatch()">Start a NEW batch</button></p>
+  <div id="batchInfo" class="msg i"></div>
+  <p><button class="g" onclick="tab(2)">Next: add books &rarr;</button></p>
+</div>
+
+<!-- 2: add books -->
+<div id="p2" class="box" style="display:none">
+  <h2>Add a book to the batch / ಪುಸ್ತಕ ಸೇರಿಸಿ</h2>
+  <p style="margin:0 0 6px">Photograph in this order. You can <b>skip</b> any photo. Put a <b>dark sheet behind</b> the page so the print from the other side does not show through. No checking is needed here: you check the whole batch later.</p>
+  <div class="slots" id="slots"></div>
+  <div class="row" style="margin-top:8px">
+    <div style="flex:3"><label>Is there an author photo on the back cover?</label>
+      <div class="tiles" id="authTiles"></div></div>
+    <div style="max-width:150px"><label>Number of copies</label><input id="a_copies" type="number" min="1" max="10" value="1" oninput="copiesChg()"></div>
+    <div><label>Call number (optional, e.g. O3:33(2))</label><input id="a_callNo"></div>
+  </div>
+  <label>Karwar number of each copy (if known)</label><div class="row" id="karwars"></div>
+  <p style="margin-top:12px"><button class="g" id="addBtn" onclick="addBook()">Read and add to batch</button> <button class="s" onclick="clearCapture()">Clear photos</button></p>
+  <div id="addMsg"></div>
+  <div id="addedList" style="font-size:13px"></div>
+</div>
+
+<!-- 3: verify -->
+<div id="p3" class="box" style="display:none">
+  <h2>Verify the batch / ಪರಿಶೀಲಿಸಿ</h2>
+  <p style="margin:0 0 8px"><button class="s" onclick="loadBatch()">Refresh</button>
+   <button class="y" onclick="classifyAll()" id="clsAll">Suggest class for all</button>
+   <button class="y" onclick="locAll()" id="locAllBtn">Fill locations</button>
+   <button class="g" onclick="submitBatch(false)" id="subBtn">Submit batch to main sheet</button></p>
+  <div id="vSum"></div>
+  <div style="overflow-x:auto"><div id="vTable"><i>Press Refresh.</i></div></div>
+  <div id="editBox"></div>
+  <div id="subMsg"></div>
+</div>
+
+<datalist id="genreList"><option value="ಕಾದಂಬರಿ"><option value="ಕಥಾ ಸಂಕಲನ"><option value="ಕವನ ಸಂಕಲನ"><option value="ಜೀವನ ಚರಿತ್ರೆ"><option value="ಪ್ರಬಂಧ"><option value="ನಾಟಕ"><option value="ಮಕ್ಕಳ ಸಾಹಿತ್ಯ"></datalist>
+</div>
+<canvas id="work" style="display:none"></canvas>
+<script>
+var $ = function (i) { return document.getElementById(i); };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+var LIBNAMES = { honavar: 'BCL Honavar', kumta: 'BCL Kumta' };
+var LIBKEY = (new URLSearchParams(location.search).get('lib') || 'honavar').toLowerCase(); if (!LIBNAMES[LIBKEY]) LIBKEY = 'honavar';
+var APIS = { honavar: 'https://script.google.com/macros/s/AKfycbwIc6HXYxQoWzhJq9AcPv6uvrn8RXJ71-577cB6GNdTf03VEig29iM-LLhafmAgiaGvPg/exec', kumta: '' };
+var API = APIS[LIBKEY] || '';
+if (!API) { try { API = localStorage.getItem('nb_api_' + LIBKEY) || ''; } catch (e) {} }
+if (!API) { API = (prompt('Paste the ' + LIBNAMES[LIBKEY] + ' web app address (it ends with /exec). Asked only once on this device.') || '').trim(); if (API) { try { localStorage.setItem('nb_api_' + LIBKEY, API); } catch (e) {} } }
+document.title = 'New Book Desk - ' + LIBNAMES[LIBKEY]; document.querySelector('header h1').textContent = 'New Book Desk - ' + LIBNAMES[LIBKEY];
+var PIN = '', INIT = null, BIG = {}, AUTH_MODE = 'auto', adding = false, LIST = [], SESSION_ADDED = [];
+var BATCH = { id: '', start: '', date: '', fy: '', lang: 'Kannada', how: 'Donated', source: '' };
+var SLOTS = [['cover', '1. Front cover', 'ಮುಖಪುಟ'], ['titlePage', '2. Title page', 'ಶೀರ್ಷಿಕೆ ಪುಟ'], ['imprint', '3. Details (imprint) page', 'ವಿವರ ಪುಟ'], ['back', '4. Back cover', 'ಹಿಂಬದಿ'], ['authorSep', '5. Author photo (only if separate)', 'ಲೇಖಕರ ಫೋಟೋ']];
+var HOWS = ['Donated', 'DCL Karwar', 'Purchase'];
+var AUTHS = [['auto', 'Auto'], ['author', 'Yes - author'], ['other', 'Someone else'], ['none', 'No photo']];
+
+// ---------------- server ----------------
+function nb(req) {
+  if (!PIN) return Promise.reject(new Error('Enter the PIN and press Connect.'));
+  req.pin = PIN;
+  var ctl = new AbortController(); var tm = setTimeout(function () { ctl.abort(); }, 170000);
+  return fetch(API, { method: 'POST', credentials: 'omit', redirect: 'follow', signal: ctl.signal, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'nbApi', args: [req] }) })
+    .then(function (r) { clearTimeout(tm); return r.json(); })
+    .then(function (j) { if (j && j.ok) return j.result; throw new Error((j && j.error) || 'Server error'); })
+    .catch(function (e) { clearTimeout(tm); throw new Error(e.name === 'AbortError' ? 'No answer from the server (timed out). Check the internet and try again.' : e.message); });
+}
+function saveLogin() {
+  PIN = $('pin').value.trim(); try { sessionStorage.setItem('rk_pin', PIN); localStorage.setItem('rk_by', $('enteredBy').value.trim()); } catch (e) {}
+  refreshInit();
+}
+async function refreshInit() {
+  try {
+    INIT = await nb({ action: 'init' });
+    var warn = [];
+    if (INIT.missingColumns && INIT.missingColumns.length) warn.push('New columns are missing in Books Catalogue - run nbSetupColumns once in the editor.');
+    if (!INIT.locationMap) warn.push('LOCATION_MAP sheet is missing - run nbSetupLocationMap once.');
+    if (!INIT.geminiKey) warn.push('Gemini key is not set - reading photos will not work yet.');
+    $('apiMsg').innerHTML = '<span class="ok">Connected.</span> ' + warn.map(function (w) { return '<span class="er">' + esc(w) + '</span>'; }).join(' ');
+    $('nextId').innerHTML = 'Next free accession no.: <b>' + INIT.nextAccNo + '</b>';
+    $('nextHint').textContent = 'next free: ' + INIT.nextAccNo;
+    if (!BATCH.start) { BATCH.start = INIT.nextAccNo; $('b_start').value = BATCH.start; saveBatch(); }
+    loadBatch(true);
+  } catch (e) { $('apiMsg').innerHTML = '<span class="er">' + esc(e.message) + '</span>'; }
+}
+
+// ---------------- tabs ----------------
+function tab(n) { for (var i = 1; i <= 3; i++) { $('p' + i).style.display = i === n ? 'block' : 'none'; $('t' + i).className = i === n ? 'on' : ''; } if (n === 3) loadBatch(); window.scrollTo(0, 0); }
+
+// ---------------- batch settings ----------------
+function fyList() {
+  var d = new Date(), y = d.getFullYear() - (d.getMonth() < 3 ? 1 : 0), out = [];
+  for (var i = 1; i >= -6; i--) { var a = y + i; out.push(a + '-' + String(a + 1).slice(2)); }
+  return out;
+}
+function fyNow() { var d = new Date(), y = d.getFullYear() - (d.getMonth() < 3 ? 1 : 0); return y + '-' + String(y + 1).slice(2); }
+function buildTiles() {
+  $('howTiles').innerHTML = HOWS.map(function (h) { return '<div class="tile' + (BATCH.how === h ? ' on' : '') + '" onclick="setHow(\'' + h + '\')">' + h + '</div>'; }).join('');
+  $('authTiles').innerHTML = AUTHS.map(function (a) { return '<div class="tile' + (AUTH_MODE === a[0] ? ' on' : '') + '" onclick="setAuth(\'' + a[0] + '\')">' + a[1] + '</div>'; }).join('');
+}
+function setHow(h) { BATCH.how = h; buildTiles(); saveBatch(); }
+function setAuth(a) { AUTH_MODE = a; buildTiles(); }
+function batchChg() { BATCH.start = $('b_start').value.replace(/\D/g, ''); BATCH.date = $('b_date').value; BATCH.fy = $('b_fy').value; BATCH.lang = $('b_lang').value.trim(); BATCH.source = $('b_source').value.trim(); saveBatch(); batchInfo(); }
+function saveBatch() { try { sessionStorage.setItem('nb_batch', JSON.stringify(BATCH)); } catch (e) {} }
+function useNext() { if (INIT) { $('b_start').value = INIT.nextAccNo; batchChg(); } else alert('Connect first.'); }
+function newBatch() {
+  if (LIST.length && !confirm('There are ' + LIST.length + ' book(s) waiting in the current batch. Start a new batch anyway? (They stay saved as pending and can be submitted later by going back to that batch.)')) return;
+  BATCH.id = 'B' + Date.now().toString(36).toUpperCase(); saveBatch(); SESSION_ADDED = []; LIST = []; batchInfo(); renderAdded(); $('vTable').innerHTML = ''; counts();
+}
+function batchInfo() { $('batchInfo').innerHTML = 'Batch <b>' + esc(BATCH.id) + '</b> - ' + esc(BATCH.how) + ', ' + esc(BATCH.fy) + ', entry date ' + esc(BATCH.date) + ', starting no. <b>' + esc(BATCH.start) + '</b>'; }
+function initBatch() {
+  try { var s = JSON.parse(sessionStorage.getItem('nb_batch') || 'null'); if (s) BATCH = s; } catch (e) {}
+  if (!BATCH.id) BATCH.id = 'B' + Date.now().toString(36).toUpperCase();
+  if (!BATCH.date) BATCH.date = new Date().toISOString().slice(0, 10);
+  $('b_fy').innerHTML = fyList().map(function (f) { return '<option>' + f + '</option>'; }).join('');
+  if (!BATCH.fy) BATCH.fy = fyNow();
+  $('b_fy').value = BATCH.fy; $('b_start').value = BATCH.start || ''; $('b_date').value = BATCH.date; $('b_lang').value = BATCH.lang || 'Kannada'; $('b_source').value = BATCH.source || '';
+  saveBatch(); buildTiles(); batchInfo();
+}
+
+// ---------------- photos ----------------
+function buildSlots() {
+  $('slots').innerHTML = SLOTS.map(function (s) {
+    return '<div class="slot"><b>' + s[1] + '</b> <small>' + s[2] + '</small><div class="pv" id="pv_' + s[0] + '">No photo</div>' +
+      '<label class="fbtn">Take photo<input type="file" accept="image/*" capture="environment" onchange="pick(\'' + s[0] + '\',this)"></label>' +
+      '<label class="fbtn s">Choose file<input type="file" accept="image/*" onchange="pick(\'' + s[0] + '\',this)"></label>' +
+      ' <button class="s" style="padding:7px 9px;font-size:13px" onclick="rm(\'' + s[0] + '\')">Skip</button></div>';
+  }).join('');
+}
+function pick(k, inp) {
+  var f = inp.files && inp.files[0]; if (!f) return;
+  var im = new Image(), url = URL.createObjectURL(f);
+  im.onload = function () {
+    var max = 1500, sc = Math.min(1, max / Math.max(im.width, im.height)), c = $('work');
+    c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    BIG[k] = c.toDataURL('image/jpeg', 0.8); URL.revokeObjectURL(url);
+    $('pv_' + k).innerHTML = '<img src="' + BIG[k] + '">'; inp.value = '';
+  };
+  im.onerror = function () { alert('Could not open this picture.'); };
+  im.src = url;
+}
+function rm(k) { delete BIG[k]; $('pv_' + k).textContent = 'No photo'; }
+function clearCapture() { BIG = {}; AUTH_MODE = 'auto'; buildSlots(); buildTiles(); $('a_copies').value = 1; $('a_callNo').value = ''; copiesChg(); $('addMsg').innerHTML = ''; }
+function copiesChg() {
+  var n = Math.max(1, Math.min(10, parseInt($('a_copies').value, 10) || 1)), old = [];
+  for (var i = 0; i < 10; i++) { var e = $('k_' + i); if (e) old[i] = e.value; }
+  var h = ''; for (var j = 0; j < n; j++) h += '<div style="min-width:120px"><label>Copy ' + (j + 1) + '</label><input id="k_' + j + '" inputmode="numeric" value="' + esc(old[j] || '') + '"></div>';
+  $('karwars').innerHTML = h;
+}
+// shrink a picture until it is below maxKB (quality first, then size)
+function shrinkTo(src, maxSide, maxKB) {
+  return new Promise(function (res) {
+    var im = new Image();
+    im.onload = function () {
+      var side = maxSide, d = src;
+      for (var round = 0; round < 6; round++) {
+        var sc = Math.min(1, side / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(im.width * sc)); c.height = Math.max(1, Math.round(im.height * sc));
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        for (var q = 0.7; q >= 0.29; q -= 0.1) { d = c.toDataURL('image/jpeg', q); if (d.length * 0.75 / 1024 <= maxKB) return res(d); }
+        side = side * 0.85;
+      }
+      res(d);
+    };
+    im.onerror = function () { res(''); };
+    im.src = src;
+  });
+}
+function cropBox(src, box) {   // box = [ymin, xmin, ymax, xmax] in 0..1000
+  return new Promise(function (res) {
+    var im = new Image();
+    im.onload = function () {
+      var y0 = box[0] / 1000, x0 = box[1] / 1000, y1 = box[2] / 1000, x1 = box[3] / 1000;
+      var padx = (x1 - x0) * 0.08, pady = (y1 - y0) * 0.08;
+      x0 = Math.max(0, x0 - padx); x1 = Math.min(1, x1 + padx); y0 = Math.max(0, y0 - pady); y1 = Math.min(1, y1 + pady);
+      var w = Math.round((x1 - x0) * im.width), h = Math.round((y1 - y0) * im.height);
+      if (w < 40 || h < 40) return res('');
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(im, Math.round(x0 * im.width), Math.round(y0 * im.height), w, h, 0, 0, w, h);
+      res(c.toDataURL('image/jpeg', 0.85));
+    };
+    im.onerror = function () { res(''); };
+    im.src = src;
+  });
+}
+
+// ---------------- reading + staging ----------------
+function isbnValid(s) {
+  var d = String(s || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+  if (d.length === 13 && /^\d{13}$/.test(d)) { var t = 0; for (var i = 0; i < 12; i++) t += (+d[i]) * (i % 2 ? 3 : 1); return (10 - t % 10) % 10 === +d[12]; }
+  if (d.length === 10 && /^\d{9}[\dX]$/.test(d)) { var u = 0; for (var j = 0; j < 9; j++) u += (+d[j]) * (10 - j); u += d[9] === 'X' ? 10 : +d[9]; return u % 11 === 0; }
+  return false;
+}
+function aiToRec(a) {
+  var rec = { title: a.title || '', subtitle: a.subtitle || '', titleEn: a.title_en || '', author: a.author || '', authorEn: a.author_en || '', genre: a.genre || '',
+    language: a.language || BATCH.lang || 'Kannada', publisher: a.publisher || '', place: a.place || '', year: a.year || '', pages: a.pages || '', price: a.price || '',
+    size: a.size || '', edition: a.edition_text || '', summary: a.summary || '', keywords: a.keywords || '' };
+  var c = (a.isbn_candidates || []).map(String), good = c.filter(isbnValid), notes = [];
+  if (good.length) { rec.isbn = good[0].replace(/[^0-9Xx]/g, ''); if (c.length > good.length) notes.push('Several ISBNs printed (' + c.join(' / ') + '); the one passing the check digit was used.'); }
+  else if (c.length) { rec.isbn = c[0].replace(/[^0-9Xx]/g, ''); notes.push('No ISBN passes the check digit (' + c.join(' / ') + ').'); }
+  else rec.isbn = '';
+  if (a.notes) notes.push(a.notes);
+  rec.aiNotes = notes.join(' ');
+  return rec;
+}
+async function addBook() {
+  if (adding) return;
+  if (!BIG.cover && !BIG.titlePage && !BIG.imprint && !BIG.back) { alert('Add at least one photo (cover, title page, details page or back cover).'); return; }
+  adding = true; $('addBtn').disabled = true; $('addMsg').innerHTML = '<div class="msg i">Reading the photos... 10 to 40 seconds.</div>';
+  try {
+    var send = {}; ['cover', 'titlePage', 'imprint', 'back'].forEach(function (k) { if (BIG[k]) send[k] = BIG[k]; });
+    var r = await nb({ action: 'read', images: send });
+    var a = r.fields || {}, rec = aiToRec(a);
+    var n = Math.max(1, Math.min(10, parseInt($('a_copies').value, 10) || 1)), copies = [];
+    for (var i = 0; i < n; i++) { var v = ($('k_' + i).value || '').trim(); if (!v && i === 0 && a.karwar_no) v = String(a.karwar_no).replace(/\D/g, ''); copies.push({ karwar: v }); }
+    rec.copies = copies; rec.callNo = $('a_callNo').value.trim();
+    // author photo
+    var authImg = '', authOf = 'author';
+    if (AUTH_MODE !== 'none') {
+      var src = '', box = a.author_photo_box;
+      if (BIG.authorSep) src = await shrinkTo(BIG.authorSep, 170, 9);
+      else if (BIG.back && box && box.length === 4 && box.every(function (x) { return typeof x === 'number'; })) src = await shrinkTo(await cropBox(BIG.back, box), 170, 9);
+      if (src) {
+        authImg = src;
+        authOf = AUTH_MODE === 'other' ? 'other' : (AUTH_MODE === 'author' ? 'author' : (a.portrait_is_author === 'no' ? 'other' : 'author'));
+      }
+    }
+    rec.authorOf = authOf;
+    var imgs = {};
+    if (BIG.cover) imgs.cover = await shrinkTo(BIG.cover, 360, 15);
+    if (BIG.imprint) imgs.imprint = await shrinkTo(BIG.imprint, 800, 40);
+    if (authImg) imgs.author = authImg;
+    var sizes = Object.keys(imgs).map(function (k) { return k + ' ' + Math.round(imgs[k].length * 0.75 / 1024) + ' KB'; }).join(', ');
+    var st = await nb({ action: 'stage', batch: BATCH.id, rec: rec, images: imgs, by: $('enteredBy').value.trim() });
+    SESSION_ADDED.unshift({ title: rec.title, sizes: sizes, notes: rec.aiNotes, auth: authImg ? authOf : 'none', copies: copies.length });
+    $('addMsg').innerHTML = '<div class="msg ok"><b>Added:</b> ' + esc(rec.title) + ' <small>(' + esc(sizes) + ')</small></div>';
+    BIG = {}; AUTH_MODE = 'auto'; buildSlots(); buildTiles(); $('a_copies').value = 1; $('a_callNo').value = ''; copiesChg(); renderAdded(); loadBatch(true);
+  } catch (e) { $('addMsg').innerHTML = '<div class="msg er">NOT added: ' + esc(e.message) + '<br>Your photos are still here. Try again, or press Skip on a bad photo.</div>'; }
+  adding = false; $('addBtn').disabled = false;
+}
+function renderAdded() {
+  $('addedList').innerHTML = SESSION_ADDED.length ? '<b>Added in this session (' + SESSION_ADDED.length + '):</b><br>' + SESSION_ADDED.slice(0, 8).map(function (x) { return '&bull; ' + esc(x.title) + ' - ' + x.copies + ' copy(ies), author photo: ' + esc(x.auth); }).join('<br>') : '';
+}
+
+// ---------------- verify ----------------
+function counts() { var c = 0; LIST.forEach(function (b) { c += (b.data.copies || []).length; }); $('n2').textContent = LIST.length ? '(' + LIST.length + ')' : ''; $('n3').textContent = LIST.length ? '(' + LIST.length + ')' : ''; return c; }
+function driveId(u) { var m = String(u || '').match(/\/d\/([-\w]{15,})/) || String(u || '').match(/[?&]id=([-\w]{15,})/); return m ? m[1] : ''; }
+function thumb(u, w) { var id = driveId(u); return id ? 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 100) : ''; }
+async function loadBatch(quiet) {
+  if (!PIN) return;
+  try { LIST = await nb({ action: 'blist', batch: BATCH.id }); renderBatch(); } catch (e) { if (!quiet) $('vTable').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
+var DEC = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T'];
+function yearCode(y) {
+  var m = String(y == null ? '' : y).match(/(?:^|\D)(1[6-9]\d\d|20[0-4]\d)(?!\d)/); if (!m) return '';
+  var n = +m[1], yy = ('0' + (n % 100)).slice(-2); if (n < 1880) return 'A' + yy;
+  var L = DEC[Math.floor((n - 1880) / 10)]; return L ? L + yy : '';
+}
+function callOf(d) { return d.callNo || (d.localClass ? d.localClass + yearCode(d.year) + (d.ddc ? '/' + d.ddc : '') : ''); }
+function flagsOf(b) {
+  var d = b.data, f = [];
+  if (d.isbn && !isbnValid(d.isbn)) f.push('<span class="flag">ISBN check fails</span>');
+  if (b.dup && b.dup.length) f.push('<span class="flag">Already in catalogue: ' + b.dup.map(function (m) { return esc(m.id); }).join(', ') + '</span>');
+  if (!d.author) f.push('<span class="flag w">no author</span>');
+  if (!d.year) f.push('<span class="flag w">no year</span>');
+  if ((d.copies || []).some(function (c) { return !c.karwar; })) f.push('<span class="flag w">Karwar no. missing</span>');
+  if (!d.callNo && !d.localClass) f.push('<span class="flag w">no class</span>');
+  if (d.aiNotes) f.push('<span class="flag w" title="' + esc(d.aiNotes) + '">note</span>');
+  return f.join(' ');
+}
+function renderBatch() {
+  var copies = counts(), start = parseInt(BATCH.start, 10) || (INIT ? INIT.nextAccNo : 0), id = start;
+  $('vSum').innerHTML = LIST.length ? '<div class="msg i"><b>' + LIST.length + '</b> book(s), <b>' + copies + '</b> copy(ies). Accession numbers <b>' + start + ' to ' + (start + copies - 1) + '</b> (given when you submit). Batch: ' + esc(BATCH.how) + ', ' + esc(BATCH.fy) + '.</div>' : '<div class="msg w">No books in this batch yet. Go to "Add books".</div>';
+  if (!LIST.length) { $('vTable').innerHTML = ''; return; }
+  $('vTable').innerHTML = '<table class="bt"><tr><th>Acc. no.</th><th></th><th>Title / author</th><th>Publisher, year, pages, price</th><th>ISBN</th><th>Copies (Karwar)</th><th>Call no. / location</th><th>CC / DDC</th><th>Check</th><th></th></tr>' +
+    LIST.map(function (b, i) {
+      var d = b.data, n = (d.copies || []).length, nums = n > 1 ? id + '-' + (id + n - 1) : String(id); id += n;
+      return '<tr><td><b>' + nums + '</b></td><td>' + (thumb(d.urls && d.urls.cover) ? '<img src="' + thumb(d.urls.cover) + '">' : '') + '</td><td>' + esc(d.title) + '<br><small>' + esc(d.author) + '</small></td><td>' + esc(d.publisher) + ', ' + esc(d.year) + ', ' + esc(d.pages) + 'p, Rs.' + esc(d.price) + '</td><td>' + esc(d.isbn) + '</td><td>' + n + ' (' + (d.copies || []).map(function (c) { return esc(c.karwar || '?'); }).join(', ') + ')</td><td>' + esc(callOf(d)) + '<br><small>' + esc(d.shelf) + '</small></td><td><small>' + esc(d.ccClass) + '<br>' + esc(d.ddc) + '</small></td><td>' + flagsOf(b) + '</td><td><button onclick="editBook(' + i + ')">Edit</button> <button class="r" onclick="removeBook(' + i + ')">Remove</button></td></tr>';
+    }).join('') + '</table>';
+}
+var EF = ['title', 'subtitle', 'titleEn', 'author', 'authorEn', 'genre', 'language', 'publisher', 'place', 'year', 'pages', 'price', 'size', 'isbn', 'edition', 'summary', 'keywords', 'callNo', 'localClass', 'shelf', 'ccClass', 'ddc', 'ccCallNo', 'remarks'];
+function fld(k, label, wide, extra) { return '<div style="flex:' + (wide || 1) + ';min-width:140px"><label>' + label + '</label><input id="e_' + k + '" ' + (extra || '') + '></div>'; }
+function editBook(i) {
+  var b = LIST[i], d = b.data; window.EDIT = b.key;
+  var h = '<div class="box" style="border:2px solid var(--gold);margin-top:12px"><h2>Edit: ' + esc(d.title) + '</h2><div class="row">' + fld('title', 'Title', 2) + fld('subtitle', 'Subtitle', 2) + '</div><div class="row">' + fld('titleEn', 'Title in English letters', 2) + fld('author', 'Author', 2) + fld('authorEn', 'Author in English letters', 2) + '</div>' +
+    '<div class="row">' + fld('genre', 'Genre', 1, 'list="genreList"') + fld('language', 'Language') + fld('publisher', 'Publisher') + fld('place', 'Place') + '</div>' +
+    '<div class="row">' + fld('year', 'Year') + fld('pages', 'Pages') + fld('price', 'Price') + fld('size', 'Size') + fld('isbn', 'ISBN') + fld('edition', 'Edition / printing', 2) + '</div>' +
+    '<label>Summary</label><textarea id="e_summary"></textarea><div class="row">' + fld('keywords', 'Keywords', 3) + '</div>' +
+    '<div class="row">' + fld('localClass', 'Local class (e.g. O3:33(2))') + fld('callNo', 'Call number (blank = automatic)') + fld('shelf', 'Shelf / location', 2) + fld('ccClass', 'CC Classification') + fld('ddc', 'DDC Classification') + fld('ccCallNo', 'CC Call Number (blank = automatic)') + '</div>' +
+    '<div class="row"><div style="max-width:160px"><label>Number of copies</label><input id="e_copies" type="number" min="1" max="10" oninput="eCopies()"></div><div style="flex:4"><label>Karwar number of each copy</label><div class="row" id="e_karwars"></div></div></div>' +
+    '<div class="row"><div><label>Photo kept as</label><select id="e_authorOf"><option value="author">Author photo</option><option value="other">Someone else</option><option value="none">Remove the photo</option></select></div>' + fld('remarks', 'Remarks', 3) + '</div>' +
+    (d.aiNotes ? '<div class="msg w"><b>Reading note:</b> ' + esc(d.aiNotes) + '</div>' : '') +
+    '<p><button class="g" onclick="saveEdit()">Save changes</button> <button class="s" onclick="$(\'editBox\').innerHTML=\'\'">Close</button></p><div id="eMsg"></div></div>';
+  $('editBox').innerHTML = h;
+  EF.forEach(function (k) { $('e_' + k).value = d[k] == null ? '' : d[k]; });
+  $('e_copies').value = (d.copies || []).length || 1; window.ECOP = (d.copies || []).map(function (c) { return c.karwar; }); eCopies(true);
+  $('e_authorOf').value = (d.urls && d.urls.author) ? (d.authorOf || 'author') : 'none';
+  $('editBox').scrollIntoView();
+}
+function eCopies(first) {
+  var n = Math.max(1, Math.min(10, parseInt($('e_copies').value, 10) || 1));
+  if (!first) { for (var i = 0; i < 10; i++) { var e = $('ek_' + i); if (e) window.ECOP[i] = e.value; } }
+  var h = ''; for (var j = 0; j < n; j++) h += '<div style="min-width:120px"><label>Copy ' + (j + 1) + '</label><input id="ek_' + j + '" inputmode="numeric" value="' + esc((window.ECOP[j]) || '') + '"></div>';
+  $('e_karwars').innerHTML = h;
+}
+async function saveEdit() {
+  var rec = {}; EF.forEach(function (k) { rec[k] = $('e_' + k).value.trim(); });
+  if (!rec.title) { alert('Title cannot be empty.'); return; }
+  if (rec.isbn && !isbnValid(rec.isbn) && !confirm('The ISBN fails the check digit. Save anyway?')) return;
+  var n = Math.max(1, Math.min(10, parseInt($('e_copies').value, 10) || 1)); rec.copies = [];
+  for (var i = 0; i < n; i++) rec.copies.push({ karwar: ($('ek_' + i).value || '').trim() });
+  var ao = $('e_authorOf').value, imgs = {};
+  if (ao === 'none') imgs.author = 'REMOVE'; else rec.authorOf = ao;
+  try { await nb({ action: 'bupdate', key: window.EDIT, rec: rec, images: imgs }); $('editBox').innerHTML = ''; await loadBatch(); } catch (e) { $('eMsg').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
+async function removeBook(i) {
+  if (!confirm('Remove "' + LIST[i].data.title + '" from the batch?')) return;
+  try { await nb({ action: 'bremove', key: LIST[i].key }); await loadBatch(); } catch (e) { alert(e.message); }
+}
+async function classifyAll() {
+  var todo = LIST.filter(function (b) { return !b.data.localClass && !b.data.ddc; }), btn = $('clsAll');
+  if (!todo.length) { alert('Every book already has a class.'); return; }
+  btn.disabled = true; var done = 0, bad = 0;
+  for (var i = 0; i < todo.length; i++) {
+    btn.textContent = 'Working ' + (i + 1) + '/' + todo.length;
+    try {
+      var d = todo[i].data, info = {}; ['title', 'titleEn', 'subtitle', 'author', 'authorEn', 'genre', 'language', 'publisher', 'year', 'summary', 'keywords'].forEach(function (k) { info[k] = d[k] || ''; });
+      var r = await nb({ action: 'classify', info: info });
+      var up = { ccClass: r.cc_class || '', ddc: r.ddc || '', localClass: r.local_class || '', clsConfidence: r.confidence || '' };
+      if (!d.titleEn && r.title_en) up.titleEn = r.title_en;
+      if (!d.authorEn && r.author_en) up.authorEn = r.author_en;
+      await nb({ action: 'bupdate', key: todo[i].key, rec: up, images: {} }); done++;
+    } catch (e) { bad++; if (/limit/i.test(e.message)) { alert(e.message); break; } }
+  }
+  btn.disabled = false; btn.textContent = 'Suggest class for all'; await loadBatch();
+  $('subMsg').innerHTML = '<div class="msg w">Suggested for ' + done + ' book(s)' + (bad ? ', ' + bad + ' failed' : '') + '. These are only proposals - please look at them before submitting.</div>';
+}
+async function locAll() {
+  var todo = LIST.filter(function (b) { return b.data.callNo && !b.data.shelf; }), done = 0;
+  for (var i = 0; i < todo.length; i++) { try { var r = await nb({ action: 'location', callNo: todo[i].data.callNo }); if (r.location) { await nb({ action: 'bupdate', key: todo[i].key, rec: { shelf: r.location }, images: {} }); done++; } } catch (e) {} }
+  await loadBatch(); $('subMsg').innerHTML = '<div class="msg i">Location filled for ' + done + ' of ' + todo.length + ' book(s).</div>';
+}
+async function submitBatch(force) {
+  if (!LIST.length) { alert('The batch is empty.'); return; }
+  batchChg();
+  var copies = counts(), start = parseInt(BATCH.start, 10) || (INIT ? INIT.nextAccNo : 0);
+  if (!force && !confirm('Submit ' + LIST.length + ' book(s), ' + copies + ' copy(ies), as accession numbers ' + start + ' to ' + (start + copies - 1) + ' into Books Catalogue?')) return;
+  $('subBtn').disabled = true; $('subMsg').innerHTML = '<i>Submitting...</i>';
+  try {
+    var r = await nb({ action: 'bsubmit', batch: BATCH.id, force: !!force, common: { start: BATCH.start, entryDate: BATCH.date, howObtained: BATCH.how, source: BATCH.source, yearObtained: BATCH.fy, language: BATCH.lang } });
+    if (r.needsConfirm) {
+      $('subMsg').innerHTML = '<div class="msg w"><b>These may already be in the catalogue:</b><br>' + r.duplicates.map(function (x) { return esc(x.title) + ' - ' + x.matches.map(function (m) { return esc(m.id) + ' (' + esc(m.why) + ')'; }).join(', '); }).join('<br>') + '<br>Remove them from the batch, or <button class="r" onclick="submitBatch(true)">Submit anyway</button></div>';
+    } else {
+      $('subMsg').innerHTML = '<div class="msg ok"><b>Submitted ' + r.count + ' book(s), accession numbers ' + r.firstId + ' to ' + r.lastId + '.</b></div><table class="bt"><tr><th>Accession no.</th><th>Title</th></tr>' + r.books.map(function (b) { return '<tr><td><b>' + esc(b.ids.join(', ')) + '</b></td><td>' + esc(b.title) + '</td></tr>'; }).join('') + '</table><p>Write these numbers in the register and on the books.</p><p><button class="g" onclick="afterSubmit(' + (r.lastId + 1) + ')">Start next batch</button></p>';
+      LIST = []; renderBatch(); counts(); refreshInit();
+    }
+  } catch (e) { $('subMsg').innerHTML = '<div class="msg er">NOT submitted: ' + esc(e.message) + '</div>'; }
+  $('subBtn').disabled = false;
+}
+function afterSubmit(nextStart) { BATCH.id = 'B' + Date.now().toString(36).toUpperCase(); BATCH.start = String(nextStart); $('b_start').value = BATCH.start; saveBatch(); SESSION_ADDED = []; renderAdded(); batchInfo(); $('subMsg').innerHTML = ''; tab(2); }
+
+// ---------------- start ----------------
+initBatch(); buildSlots(); buildTiles(); copiesChg(); tab(1);
+try { $('pin').value = sessionStorage.getItem('rk_pin') || ''; $('enteredBy').value = localStorage.getItem('rk_by') || ''; if ($('pin').value) { PIN = $('pin').value; refreshInit(); } } catch (e) {}
+</script></body></html>

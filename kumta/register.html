@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Member Registration Desk</title>
+<style>
+:root{--navy:#14306b;--gold:#d9a521;--bg:#f3f5f9;--line:#d5dbea;--ok:#1b7a3a;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans","Noto Sans Kannada",Arial,sans-serif;background:var(--bg);color:#1b2540}
+header{background:var(--navy);color:#fff;padding:12px 18px;border-bottom:4px solid var(--gold)}
+header h1{margin:0;font-size:20px}header small{opacity:.85;font-size:13px}
+.trial{background:#fff4d6;border-bottom:1px solid #e5c76b;padding:8px 18px;font-size:13px}
+.wrap{max-width:1100px;margin:0 auto;padding:14px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.steps div{flex:1;min-width:120px;padding:8px;border-radius:8px;background:#e6eaf5;font-size:13px;text-align:center}
+.steps .on{background:var(--navy);color:#fff;font-weight:bold}.steps .done{background:#d9f5e3}
+.box{background:#fff;border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px #0002}
+h2{margin:0 0 8px;color:var(--navy);font-size:18px}
+button{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:12px 16px;font-size:16px;cursor:pointer}
+button.g{background:var(--ok)}button.s{background:#7a869f}button.y{background:var(--gold);color:#1b2540;font-weight:bold}button.r{background:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:180px}
+label{display:block;font-size:12px;font-weight:bold;color:#3b4a75;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;font-size:16px;border:1px solid #b7c0d6;border-radius:8px;font-family:inherit}
+textarea{min-height:70px}
+.doctypes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.doctypes button{padding:16px 10px;font-size:15px;line-height:1.3}
+.doctypes small{display:block;font-weight:normal;opacity:.85;font-size:12px}
+.docs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.doc{border:1px solid var(--line);border-radius:8px;padding:6px;width:210px;background:#fafbff;font-size:12px}
+.doc img{width:100%;height:110px;object-fit:cover;border-radius:6px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;background:#dfe7ff;margin:2px 2px 0 0}
+.tag.ok{background:#d9f5e3}.tag.w{background:#ffe9c7}
+#cam{position:fixed;inset:0;background:#000d;display:none;z-index:50;align-items:center;justify-content:center;padding:10px}
+#cam .in{background:#fff;border-radius:12px;max-width:880px;width:100%;padding:12px;max-height:100%;overflow:auto}
+.vwrap{position:relative;background:#000;border-radius:8px;overflow:hidden}
+video{width:100%;max-height:60vh;display:block;background:#000}
+.guide{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.guide div{border:3px dashed #ffd24a;border-radius:10px}
+.msg{padding:9px 12px;border-radius:8px;margin-top:8px;font-size:14px}
+.msg.ok{background:#d9f5e3}.msg.w{background:#fff4d6}.msg.er{background:#ffdede}.msg.i{background:#e8efff}
+.src{font-size:10px;font-weight:normal;color:#6a7899;margin-left:4px}
+.lines{max-height:170px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px;background:#fafbff;font-size:13px}
+.lines div{padding:3px 6px;border-radius:5px;cursor:pointer}.lines div:hover{background:#e8efff}
+.sigprev{background:#fff;border:1px solid var(--line);border-radius:8px;height:110px;display:flex;align-items:center;justify-content:center}
+#sigpad{border:2px dashed #9aa6c8;border-radius:8px;background:#fff;touch-action:none;width:100%;height:170px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;border-bottom:1px solid var(--line);text-align:left}th{background:var(--navy);color:#fff}
+#pa{display:none}
+@media print{body>*:not(#pa){display:none!important}#pa{display:block!important}}
+.pr{font-family:"Noto Sans",Arial,sans-serif;padding:14mm;color:#000}
+.pr h1{font-size:18px;margin:0;text-align:center}.pr h2{font-size:14px;text-align:center;margin:2px 0 10px;color:#000}
+.pr table td{border:1px solid #888;padding:6px;font-size:13px}.pr table td:first-child{width:34%;font-weight:bold;background:#f0f0f0}
+</style></head><body>
+<header><h1 id="libName">Member Registration Desk</h1><small id="libSub">ಸದಸ್ಯತ್ವ ನೋಂದಣಿ ಕೇಂದ್ರ</small></header>
+<div class="trial" id="bar">
+  <div class="row" style="align-items:flex-end">
+    <div style="max-width:170px"><label>Kiosk PIN</label><input id="pin" type="password" autocomplete="off" placeholder="PIN"></div>
+    <div style="max-width:220px"><label>Entered by (your name)</label><input id="enteredBy" placeholder="Staff name"></div>
+    <div style="flex:2;min-width:260px"><button class="g" onclick="saveLogin()">Connect</button>
+      <button class="s" onclick="newMember()">New registration</button>
+      <button class="y" onclick="showPending()" id="pendBtn">Pending approvals</button>
+      <span id="nextId" style="margin-left:8px;font-size:13px"></span></div>
+  </div>
+  <div id="apiMsg" style="font-size:13px;margin-top:4px"></div>
+</div>
+<datalist id="profList"></datalist>
+<div class="wrap">
+<div class="steps" id="steps"></div>
+
+<div id="s1" class="box">
+  <h2>Step 1 - Documents / ದಾಖಲೆಗಳು</h2>
+  <p style="margin:0 0 8px">Show or upload <b>any one or more</b> documents. The system reads what it can; you check everything in Step 4.</p>
+  <div class="row"><div><label>Camera / ಕ್ಯಾಮೆರಾ</label><select id="camSel"></select></div>
+    <div><label>Also read Kannada text (slower, first time downloads more)</label><select id="useKan"><option value="0">No - English only</option><option value="1">Yes - English + Kannada</option></select></div></div>
+  <div class="doctypes" style="margin-top:10px">
+    <button onclick="addDoc('aadhaar')">Aadhaar Card<small>ಆಧಾರ್ - QR + printed text</small></button>
+    <button onclick="addDoc('ration')">Ration Card<small>ಪಡಿತರ ಚೀಟಿ</small></button>
+    <button onclick="addDoc('voter')">Voter ID<small>ಮತದಾರರ ಗುರುತಿನ ಚೀಟಿ</small></button>
+    <button onclick="addDoc('hand')">Handwritten details<small>ಕೈಬರಹದ ವಿವರ (low accuracy)</small></button>
+  </div>
+  <div class="docs" id="docs"></div>
+  <div id="docMsg"></div>
+  <p style="margin-top:12px"><button class="g" onclick="go(2)">Next: Photo →</button> <button class="s" onclick="go(2)">Skip documents (type everything)</button></p>
+</div>
+
+<div id="s2" class="box" style="display:none">
+  <h2>Step 2 - Member photo / ಭಾವಚಿತ್ರ</h2>
+  <div class="row"><div id="photoPrev" class="sigprev" style="height:220px;max-width:190px">No photo</div>
+  <div><button class="y" onclick="addPhoto()">Take photo with camera</button> <label style="display:inline-block;background:#7a869f;color:#fff;padding:12px 16px;border-radius:8px;cursor:pointer;margin:0">Choose file<input type="file" accept="image/*" style="display:none" onchange="photoFile(event)"></label>
+  <p class="msg i">Member sits in front of a plain wall, face inside the oval, looking straight at the camera.</p></div></div>
+  <p><button class="s" onclick="go(1)">← Back</button> <button class="g" onclick="go(3)">Next: Signature →</button></p>
+</div>
+
+<div id="s3" class="box" style="display:none">
+  <h2>Step 3 - Signature / ಸಹಿ</h2>
+  <div class="row"><div><p style="margin:0 0 6px"><b>A. Sign on white paper</b> and show it to the camera (dark pen):</p>
+    <button class="y" onclick="addSign()">Capture paper signature</button>
+    <label style="display:inline-block;background:#7a869f;color:#fff;padding:12px 16px;border-radius:8px;cursor:pointer;margin:0 0 0 4px">Choose file<input type="file" accept="image/*" style="display:none" onchange="signFile(event)"></label></div>
+  <div><p style="margin:0 0 6px"><b>B. Sign on the screen</b> (touch screen / pen):</p><canvas id="sigpad" width="700" height="240"></canvas>
+    <button class="s" onclick="padClear()">Clear</button> <button class="g" onclick="padUse()">Use this signature</button></div></div>
+  <p style="margin-top:10px"><b>Signature saved:</b></p><div id="sigPrev" class="sigprev">None yet</div>
+  <p><button class="s" onclick="go(2)">← Back</button> <button class="g" onclick="go(4)">Next: Check details →</button></p>
+</div>
+
+<div id="s4" class="box" style="display:none">
+  <h2>Step 4 - Check and Approve / ಪರಿಶೀಲಿಸಿ</h2>
+  <div class="msg i">Fields filled from documents show where they came from. Click any field and fix it if needed. You can also tap a line from the document text to put it into the selected field.</div>
+  <div class="row" style="margin-top:6px"><div style="max-width:170px"><div id="rvPhoto" class="sigprev" style="height:200px">No photo</div></div>
+  <div style="flex:3">
+    <div class="row">
+      <div><label>Type / ಪ್ರಕಾರ</label><select id="f_type"><option>Member</option><option>Non-Member</option></select></div>
+      <div><label>Books allowed (fee)</label><select id="f_books"><option value="1">1 book - Rs.112</option><option value="2">2 books - Rs.162</option><option value="3">3 books - Rs.212</option></select></div>
+      <div><label>Form no.</label><input id="f_formNo"></div>
+      <div><label>Receipt book no.</label><input id="f_rbook"></div>
+    </div>
+    <div class="row" id="fA"></div><div class="row" id="fB"></div><div id="addrAlt"></div>
+    <label>Address as on Aadhaar / document <span class="src" id="src_address"></span></label><textarea id="f_address" onfocus="focusF(this)"></textarea>
+    <label style="font-weight:normal"><input type="checkbox" id="f_same" style="width:auto" onchange="sameChg()" checked> This is also the <b>present address</b> of the applicant</label>
+    <div id="presentBox" style="display:none;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:6px">
+      <b>Present address / ಈಗಿನ ವಿಳಾಸ</b>
+      <div class="row">
+        <div><label>House no. / name</label><input id="f_house" onfocus="focusF(this)"></div>
+        <div><label>Street / road</label><input id="f_street" onfocus="focusF(this)"></div>
+        <div><label>Address line 3</label><input id="f_line3" onfocus="focusF(this)"></div>
+      </div>
+      <div class="row">
+        <div><label>Post</label><input id="f_post" onfocus="focusF(this)"></div>
+        <div><label>Taluk</label><input id="f_taluk" value="Honavar" onfocus="focusF(this)"></div>
+        <div><label>District</label><input id="f_district" value="Uttara Kannada" onfocus="focusF(this)"></div>
+        <div><label>Pin code</label><input id="f_pin" inputmode="numeric" maxlength="6" onfocus="focusF(this)"></div>
+      </div>
+    </div>
+    <label>Office address (optional) / ಕಚೇರಿ ವಿಳಾಸ</label><textarea id="f_office" onfocus="focusF(this)" style="min-height:50px"></textarea>
+    <div class="row" id="fC"></div></div></div>
+  <details style="margin-top:8px"><summary><b>Text read from the documents</b> (tap a line to use it)</summary><div class="lines" id="allLines"></div></details>
+  <div style="margin-top:8px"><b>Signature:</b><div id="rvSign" class="sigprev" style="height:80px;max-width:300px">None</div></div>
+  <div id="chk"></div>
+  <p style="margin-top:12px"><button class="s" onclick="go(3)">← Back</button> <button class="g" id="saveBtn" onclick="approve()">Save for approval</button></p>
+</div>
+
+<div id="s5" class="box" style="display:none">
+  <h2>Done - saved as PENDING</h2>
+  <div id="doneMsg" class="msg ok"></div>
+  <p><button class="y" onclick="printForm()">Print registration form</button> <button class="s" onclick="showPending()">Go to Pending approvals</button> <button class="g" onclick="newMember()">Register next member</button></p>
+</div>
+
+<div id="s6" class="box" style="display:none">
+  <h2>Pending approvals / ಅನುಮೋದನೆ ಬಾಕಿ</h2>
+  <div id="pList"><i>Press Connect first.</i></div>
+  <div id="pDetail"></div>
+  <h2 style="margin-top:18px">Recently approved</h2>
+  <div id="rList"></div>
+</div>
+</div>
+
+<div id="cam"><div class="in">
+  <h2 id="camTitle">Camera</h2>
+  <div class="vwrap"><video id="vid" autoplay playsinline muted></video><div class="guide" id="guide"></div></div>
+  <div id="camMsg" class="msg i">Starting camera...</div>
+  <p style="margin:8px 0 0"><button class="y" id="capBtn" onclick="capture()">Capture</button> <button class="s" onclick="closeCam()">Cancel</button> <button class="s" onclick="camFile()">Choose a file instead</button></p>
+</div></div>
+<canvas id="work" style="display:none"></canvas>
+<div id="pa"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script>
+// ---------------- library name (from ?lib=) ----------------
+var LIBS = {
+  honavar: ['District Central Library, Karwar', 'Branch: Honavar'],
+  kumta:   ['District Central Library, Karwar', 'Branch: Kumta'],
+  'sdm-degree': ['S.D.M. Degree College Library', 'Honavar'],
+  'sdm-pu':    ['S.D.M. P.U. College Library', 'Honavar']
+};
+var LIBKEY = (new URLSearchParams(location.search).get('lib') || 'honavar').toLowerCase();
+if (!LIBS[LIBKEY]) LIBKEY = 'honavar';
+var LIBN = LIBS[LIBKEY];
+document.getElementById('libName').textContent = LIBN[0] + ' - ' + LIBN[1] + ' - Member Registration Desk';
+
+var $ = function (i) { return document.getElementById(i); };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+// ---------------- state ----------------
+var S = { step: 1, docs: [], photo: '', sign: '', fields: {}, src: {}, addrAlts: [], seq: 0 };
+var FIELDS_A = [['name', 'Name / ಹೆಸರು'], ['careof', 'Father / Husband / C-O'], ['dob', 'Date of birth (dd/mm/yyyy)'], ['gender', 'Gender']];
+var FIELDS_B = [['mobile', 'Mobile (10 digits)'], ['email', 'E-mail'], ['aadhaar', 'Aadhaar number (12 digits)']];
+var FIELDS_C = [['profession', 'Profession (choose or type)'], ['qualification', 'Qualification'], ['voter', 'Voter ID (EPIC) No.'], ['ration', 'Ration card No.']];
+var PRIORITY = { qr: 5, aadhaar: 4, voter: 3, ration: 2, hand: 1 };
+var SRCNAME = { qr: 'Aadhaar QR', aadhaar: 'Aadhaar text', voter: 'Voter ID', ration: 'Ration card', hand: 'Handwritten', manual: 'typed' };
+
+function stepsBar() {
+  var n = ['1 Documents', '2 Photo', '3 Signature', '4 Check', '5 Done'];
+  $('steps').innerHTML = n.map(function (t, i) { return '<div class="' + (i + 1 === S.step ? 'on' : (i + 1 < S.step ? 'done' : '')) + '">' + t + '</div>'; }).join('');
+}
+function go(n) {
+  if (n === 4) buildReview();
+  S.step = n;
+  for (var i = 1; i <= 6; i++) $('s' + i).style.display = i === n ? 'block' : 'none';
+  stepsBar(); window.scrollTo(0, 0);
+}
+
+// ---------------- camera ----------------
+var stream = null, camCtx = null, scanTimer = null, camBusy = false;
+function paths() { return window.KIOSK_PATHS || {}; }
+async function listCams() {
+  try {
+    var tmp = await navigator.mediaDevices.getUserMedia({ video: true }); tmp.getTracks().forEach(function (t) { t.stop(); });
+    var devs = (await navigator.mediaDevices.enumerateDevices()).filter(function (d) { return d.kind === 'videoinput'; });
+    var saved = ''; try { saved = localStorage.getItem('regkiosk_cam') || ''; } catch (e) {}
+    $('camSel').innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '"' + (d.deviceId === saved ? ' selected' : '') + '>' + esc(d.label || ('Camera ' + (i + 1))) + '</option>'; }).join('') || '<option value="">No camera found</option>';
+  } catch (e) { $('camSel').innerHTML = '<option value="">Camera not available (use Choose file)</option>'; }
+}
+$('camSel').onchange = function () { try { localStorage.setItem('regkiosk_cam', this.value); } catch (e) {} };
+async function openCam(title, kind, guide, onCapture) {
+  camCtx = { kind: kind, onCapture: onCapture };
+  $('camTitle').textContent = title; $('cam').style.display = 'flex'; $('camMsg').className = 'msg i'; $('camMsg').textContent = 'Starting camera...';
+  var g = $('guide'); g.innerHTML = guide === 'oval' ? '<div style="width:42%;height:82%;border-radius:50%"></div>' : (guide === 'sign' ? '<div style="width:78%;height:42%"></div>' : '<div style="width:86%;height:78%"></div>');
+  try {
+    var id = $('camSel').value;
+    stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign({ width: { ideal: 1920 }, height: { ideal: 1080 } }, id ? { deviceId: { exact: id } } : {}), audio: false });
+    $('vid').srcObject = stream;
+    $('camMsg').textContent = kind === 'aadhaar' ? 'Hold the Aadhaar flat inside the frame. The QR is scanned automatically; press Capture for the printed text.' : 'Position and press Capture.';
+    if (kind === 'aadhaar') startScan();
+  } catch (e) { $('camMsg').className = 'msg er'; $('camMsg').textContent = 'Camera could not start: ' + (e.message || e) + '. Close this and use "Choose file".'; }
+}
+function closeCam() {
+  if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+  if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+  $('vid').srcObject = null; $('cam').style.display = 'none'; camCtx = null;
+}
+function frameCanvas() {
+  var v = $('vid'), c = document.createElement('canvas');
+  c.width = v.videoWidth || 1280; c.height = v.videoHeight || 720; c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); return c;
+}
+function startScan() {
+  scanTimer = setInterval(function () {
+    if (camBusy || !camCtx || !$('vid').videoWidth) return;
+    camBusy = true;
+    try { var c = frameCanvas(); var t = qrFromCanvas(c); if (t) { var p = parseQr(t); if (p) { var ctx = camCtx; closeCam(); finishDoc('aadhaar', c, { qr: p }); } } } catch (e) {}
+    camBusy = false;
+  }, 450);
+}
+function camFile() {
+  if (!camCtx) return; var ctx = camCtx; closeCam();
+  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function () { if (inp.files[0]) fileToCanvas(inp.files[0], function (c) { ctx.onCapture(c); }, ctx.kind === 'photo' ? 1600 : 2400); };
+  inp.click();
+}
+function capture() { if (!camCtx) return; var c = frameCanvas(), ctx = camCtx; closeCam(); ctx.onCapture(c); }
+
+// ---------------- QR (Aadhaar) ----------------
+function qrFromCanvas(canvas) {
+  var tries = [1, 0.7, 1.4];
+  for (var k = 0; k < tries.length; k++) {
+    var s = tries[k], c = canvas;
+    if (s !== 1) { c = document.createElement('canvas'); c.width = Math.round(canvas.width * s); c.height = Math.round(canvas.height * s); c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height); }
+    try {
+      var hints = new Map(); hints.set(ZXing.DecodeHintType.TRY_HARDER, true); hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.QR_CODE]);
+      var reader = new ZXing.MultiFormatReader(); reader.setHints(hints);
+      var bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(c)));
+      return reader.decode(bmp).getText();
+    } catch (e) {}
+  }
+  return '';
+}
+function fixDob(s) { var m = String(s || '').match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/); return m ? m[1] + '/' + m[2] + '/' + m[3] : ''; }
+// Returns {name,dob,gender,careof,address,pincode,aadhaar4,mobile} or null. (The QR holds only the last 4 digits.)
+function parseQr(text) {
+  text = String(text || '').trim();
+  if (!text) return null;
+  var f = {};
+  if (text.charAt(0) === '<') {               // old XML QR
+    var at = function (k) { var m = text.match(new RegExp('\\b' + k + '="([^"]*)"', 'i')); return m ? m[1] : ''; };
+    var uid = at('uid'); f.aadhaar4 = uid.slice(-4); f.name = at('name'); f.gender = ({ M: 'Male', F: 'Female', T: 'Transgender' })[at('gender').toUpperCase()] || at('gender');
+    f.dob = fixDob(at('dob')) || (at('yob') ? '01/01/' + at('yob') : ''); f.careof = at('co');
+    f.pincode = at('pc'); f.address = joinAddr([at('house'), at('street'), at('lm'), at('loc'), at('vtc'), at('po'), at('subdist'), at('dist'), at('state'), at('pc')]);
+    return f.name ? f : null;
+  }
+  if (!/^\d{200,}$/.test(text)) return null;     // secure QR = very long decimal number
+  try {
+    var big = BigInt(text), hex = big.toString(16); if (hex.length % 2) hex = '0' + hex;
+    var bytes = new Uint8Array(hex.length / 2); for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    var raw = pako.ungzip(bytes);
+    var parts = [], cur = [];
+    for (var j = 0; j < raw.length && parts.length < 17; j++) { if (raw[j] === 255) { parts.push(cur); cur = []; } else cur.push(raw[j]); }
+    var dec = new TextDecoder('utf-8'); var t = parts.map(function (p) { return dec.decode(new Uint8Array(p)); });
+    var o = /^V\d+$/i.test(t[0]) ? 1 : 0;             // newer versions start with "V2"
+    var g = function (n) { return (t[o + n] || '').trim(); };
+    // [0] mobile/e-mail flag, [1] reference id (first 4 digits = last 4 of Aadhaar), [2] name, [3] dob, [4] gender, [5] care-of, [6] district,
+    // [7] landmark, [8] house, [9] location, [10] pincode, [11] post office, [12] state, [13] street, [14] sub-district, [15] VTC
+    f.aadhaar4 = g(1).slice(0, 4); f.name = g(2); f.dob = fixDob(g(3)); f.gender = ({ M: 'Male', F: 'Female', T: 'Transgender' })[g(4).toUpperCase()] || g(4);
+    f.careof = g(5); f.pincode = g(10);
+    f.address = joinAddr([g(8), g(13), g(7), g(9), g(15), g(11), g(14), g(6), g(12), g(10)]);
+    return f.name ? f : null;
+  } catch (e) { return null; }
+}
+
+// ---------------- OCR ----------------
+var worker = null, workerLang = '';
+async function getWorker() {
+  var lang = $('useKan').value === '1' ? 'eng+kan' : 'eng';
+  if (worker && workerLang === lang) return worker;
+  if (worker) { try { await worker.terminate(); } catch (e) {} }
+  var P = paths(), opt = {};
+  if (P.workerPath) opt.workerPath = P.workerPath; if (P.corePath) opt.corePath = P.corePath; if (P.langPath) { opt.langPath = P.langPath; opt.gzip = true; }
+  worker = await Tesseract.createWorker(lang, 1, opt); workerLang = lang; return worker;
+}
+function prep(canvas) {   // bigger + grey + contrast for the text reader
+  var w = canvas.width, h = canvas.height, s = Math.max(1, Math.min(2.2, 2200 / Math.max(w, h)));
+  var c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+  var x = c.getContext('2d'); x.filter = 'grayscale(1) contrast(1.35)'; x.drawImage(canvas, 0, 0, c.width, c.height); return c;
+}
+async function ocr(canvas) { var wk = await getWorker(); var r = await wk.recognize(prep(canvas)); return r.data.text || ''; }
+
+// ---------------- text parsers ----------------
+function clean(s) { return String(s || '').replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, ', ').replace(/(,\s*)+/g, ', ').replace(/^[,\s]+|[,\s]+$/g, ''); }
+function joinAddr(a) { var seen = {}, out = []; a.forEach(function (x) { x = String(x || '').trim(); var k = x.toLowerCase(); if (x && !seen[k]) { seen[k] = 1; out.push(x); } }); return out.join(', '); }
+function validName(n) { var w = String(n || '').trim().split(/\s+/); return w.length >= 2 && w.every(function (x) { return x.replace(/[^A-Za-z]/g, '').length >= 2; }) && /^[A-Za-z .]+$/.test(n); }
+function titleName(s) { return String(s || '').replace(/[^A-Za-z .]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function parseAadhaarText(t) {
+  var f = {}, m;
+  if ((m = t.match(/\b(\d{4})\s?(\d{4})\s?(\d{4})\b/))) { f.aadhaar4 = m[3]; f.aadhaar = m[1] + m[2] + m[3]; }
+  if ((m = t.match(/(?:DOB|D\.?O\.?B\.?|Date of Birth)[^0-9]{0,12}(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/i))) f.dob = m[1] + '/' + m[2] + '/' + m[3];
+  else if ((m = t.match(/Year of Birth[^0-9]{0,8}(\d{4})/i))) f.dob = '01/01/' + m[1];
+  if ((m = t.match(/\b(MALE|FEMALE|TRANSGENDER)\b/i))) f.gender = m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+  if ((m = t.match(/\b[6-9]\d{9}\b/))) f.mobile = m[0];
+  var lines = t.split(/\n/).map(function (x) { return x.trim(); }).filter(String);
+  var di = -1; lines.forEach(function (l, i) { if (di < 0 && /DOB|Date of Birth|Year of Birth|\d{2}\/\d{2}\/\d{4}/i.test(l)) di = i; });
+  for (var i = di - 1; i >= 0 && i >= di - 4; i--) {
+    var l = lines[i];
+    if (/^[A-Za-z][A-Za-z .]{3,40}$/.test(l) && !/government|india|unique|authority|aadhaar|male|enrol/i.test(l) && l.split(' ').length >= 2) { f.name = titleName(l); break; }
+  }
+  if (!f.name && (m = t.match(/\bTo\s*\n\s*(?:[^\n]*\n)?\s*([A-Z][A-Za-z .]{3,40})\n/)) && validName(titleName(m[1]))) f.name = titleName(m[1]);
+  if ((m = t.match(/\b([SDWC])\/O[:\s]+([A-Za-z .]{3,40})/i))) f.careof = titleName(m[2]);
+  var a = t.match(/Address[:\s]*([\s\S]*?\b\d{6}\b)/i);
+  if (!a) a = t.match(/\b([SDWC]\/O[\s\S]*?\b\d{6}\b)/i);
+  if (a) { f.address = clean(a[1]); var p = a[1].match(/\b(\d{6})\b/); if (p) f.pincode = p[1]; }
+  return f;
+}
+function parseVoterText(t) {
+  var f = {}, m;
+  if ((m = t.match(/\b([A-Z]{3}\s?\d{7})\b/))) f.voter = m[1].replace(/\s/g, '');
+  if ((m = t.match(/(?:Elector'?s?\s*Name|^Name)\s*[:\-]?\s*([A-Za-z .]{3,40})/im))) f.name = titleName(m[1]);
+  if ((m = t.match(/(?:Father|Husband|Mother)'?s?\s*Name\s*[:\-]?\s*([A-Za-z .]{3,40})/i))) f.careof = titleName(m[1]);
+  if ((m = t.match(/(?:Sex|Gender)\s*[:\-\/]?\s*(Male|Female|M|F)\b/i))) f.gender = /^f/i.test(m[1]) ? 'Female' : 'Male';
+  if ((m = t.match(/(?:Date of Birth|DOB)[^0-9]{0,10}(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/i))) f.dob = m[1] + '/' + m[2] + '/' + m[3];
+  var a = t.match(/Address\s*[:\-]?\s*([\s\S]*?\b\d{6}\b)/i); if (a) { f.address = clean(a[1]); f.pincode = (a[1].match(/\b(\d{6})\b/) || [])[1]; }
+  if ((m = t.match(/\b[6-9]\d{9}\b/))) f.mobile = m[0];
+  return f;
+}
+function parseRationText(t) {
+  var f = {}, m;
+  if ((m = t.match(/(?:Ration\s*Card\s*(?:No\.?|Number)|Card\s*No\.?)[^A-Za-z0-9]{0,6}([A-Z0-9]{8,14})/i))) f.ration = m[1];
+  if ((m = t.match(/(?:Head\s*of\s*(?:the\s*)?Family|Name\s*of\s*(?:the\s*)?Head)[^A-Za-z]{0,6}([A-Za-z .]{3,40})/i))) f.name = titleName(m[1]);
+  var a = t.match(/Address\s*[:\-]?\s*([\s\S]{8,200}?)(?:\n\s*\n|$)/i); if (a) { f.address = clean(a[1]); var p = a[1].match(/\b(\d{6})\b/); if (p) f.pincode = p[1]; }
+  if ((m = t.match(/\b[6-9]\d{9}\b/))) f.mobile = m[0];
+  return f;
+}
+function parseHandText(t) {
+  var f = {}, m;
+  if ((m = t.match(/Name\s*[:\-]\s*([A-Za-z .]{3,40})/i))) f.name = titleName(m[1]);
+  if ((m = t.match(/(?:Father|Husband)'?s?\s*(?:Name)?\s*[:\-]\s*([A-Za-z .]{3,40})/i))) f.careof = titleName(m[1]);
+  if ((m = t.match(/(?:DOB|Date of Birth|Birth)\s*[:\-]?\s*(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/i))) f.dob = m[1] + '/' + m[2] + '/' + m[3];
+  if ((m = t.match(/\b[6-9]\d{9}\b/))) f.mobile = m[0];
+  if ((m = t.match(/([A-Za-z0-9._-]+@[A-Za-z0-9.-]+\.[a-z]{2,})/))) f.email = m[1];
+  var a = t.match(/Address\s*[:\-]?\s*([\s\S]{6,200}?)(?:\n\s*\n|$)/i); if (a) f.address = clean(a[1]);
+  return f;
+}
+
+// ---------------- documents ----------------
+var LABEL = { aadhaar: 'Aadhaar', ration: 'Ration card', voter: 'Voter ID', hand: 'Handwritten' };
+function addDoc(type) {
+  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function () { if (inp.files[0]) fileToCanvas(inp.files[0], function (c) { finishDoc(type, c, {}); }); };
+  var useCam = $('camSel').value;
+  if (useCam) openCam('Show the ' + LABEL[type], type === 'aadhaar' ? 'aadhaar' : 'doc', 'doc', function (c) { finishDoc(type, c, {}); });
+  else inp.click();
+}
+function fileToCanvas(file, cb, maxSide) {
+  var im = new Image(), u = URL.createObjectURL(file);
+  im.onload = function () {
+    var s = Math.min(1, (maxSide || 2400) / Math.max(im.width, im.height)), c = document.createElement('canvas');
+    c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); cb(c);
+  };
+  im.src = u;
+}
+async function finishDoc(type, canvas, pre) {
+  var d = { id: ++S.seq, type: type, thumb: thumbOf(canvas), lines: [], status: 'Reading...' };
+  S.docs.push(d); renderDocs();
+  try {
+    var qr = pre.qr || null;
+    if (type === 'aadhaar' && !qr) { var qt = qrFromCanvas(canvas); if (qt) qr = parseQr(qt); }
+    if (qr) { d.qrP = qr; d.qrOk = true; recompute(); d.status = 'QR read'; renderDocs(); }
+    d.status = qr ? 'QR read, reading printed text...' : 'Reading text (10-30 seconds)...'; renderDocs();
+    var text = await ocr(canvas); d.text = text;
+    d.lines = text.split('\n').map(function (x) { return x.trim(); }).filter(function (x) { return x.length > 2; });
+    var p = type === 'aadhaar' ? parseAadhaarText(text) : type === 'voter' ? parseVoterText(text) : type === 'ration' ? parseRationText(text) : parseHandText(text);
+    d.textP = p; recompute();
+    d.status = (qr ? 'QR + text read' : 'Text read') + (type === 'hand' ? ' (handwriting - please check)' : '');
+  } catch (e) { d.status = (d.qrOk ? 'QR read; ' : '') + 'text reading failed: ' + (e.message || e); }
+  renderDocs(); updateDocMsg();
+}
+function thumbOf(c) { var t = document.createElement('canvas'), s = 300 / Math.max(c.width, c.height); t.width = Math.round(c.width * s); t.height = Math.round(c.height * s); t.getContext('2d').drawImage(c, 0, 0, t.width, t.height); return t.toDataURL('image/jpeg', 0.6); }
+function renderDocs() {
+  $('docs').innerHTML = S.docs.map(function (d) {
+    return '<div class="doc"><img src="' + d.thumb + '"><b>' + LABEL[d.type] + '</b><br><span class="tag ' + (/failed/.test(d.status) ? 'w' : (/read/i.test(d.status) ? 'ok' : '')) + '">' + esc(d.status) + '</span><br><button class="r" style="padding:3px 8px;font-size:12px;margin-top:4px" onclick="rmDoc(' + d.id + ')">Remove</button></div>';
+  }).join('');
+}
+function rmDoc(id) { S.docs = S.docs.filter(function (d) { return d.id !== id; }); recompute(); renderDocs(); }
+function updateDocMsg() {
+  var n = Object.keys(S.fields).filter(function (k) { return S.fields[k]; }).length;
+  $('docMsg').innerHTML = S.docs.length ? '<div class="msg ' + (n ? 'ok' : 'w') + '">' + (n ? 'Read ' + n + ' fields from the documents. Go on to Photo and Signature; you will check everything in Step 4.' : 'Could not read fields automatically. You can type them in Step 4, or try a clearer picture.') + '</div>' : '';
+}
+function recompute() {
+  var best = {}, bestP = {}, bestS = {}; S.addrAlts = [];
+  S.docs.forEach(function (d) {
+    [['qr', d.qrP], [d.type, d.textP]].forEach(function (e) {
+      if (!e[1]) return;
+      Object.keys(e[1]).forEach(function (k) {
+        var v = e[1][k]; if (!v) return;
+        if (k === 'address' && !S.addrAlts.some(function (a) { return a.text === v; })) S.addrAlts.push({ src: e[0], text: v });
+        var pr = PRIORITY[e[0]] || 0; if (!(k in best) || pr > bestP[k]) { best[k] = v; bestP[k] = pr; bestS[k] = e[0]; }
+      });
+    });
+  });
+  var keep = {}, keepS = {}; Object.keys(S.fields).forEach(function (k) { if (S.src[k] === 'manual') { keep[k] = S.fields[k]; keepS[k] = 'manual'; } });
+  S.fields = Object.assign({}, best, keep); S.src = Object.assign({}, bestS, keepS);
+}
+
+// ---------------- photo ----------------
+function cropPortrait(c) {
+  var r = 3 / 4, w = c.width, h = c.height, cw = w, ch = h;
+  if (w / h > r) cw = Math.round(h * r); else ch = Math.round(w / r);
+  var o = document.createElement('canvas'); o.width = 480; o.height = 640;
+  o.getContext('2d').drawImage(c, Math.round((w - cw) / 2), Math.round((h - ch) / 2), cw, ch, 0, 0, 480, 640);
+  return o.toDataURL('image/jpeg', 0.85);
+}
+function setPhoto(url) { S.photo = url; $('photoPrev').innerHTML = '<img src="' + url + '" style="max-width:100%;max-height:100%;border-radius:6px">'; }
+function addPhoto() { if ($('camSel').value) openCam('Member photo', 'photo', 'oval', function (c) { setPhoto(cropPortrait(c)); }); else alert('Camera not available. Use Choose file.'); }
+function photoFile(e) { if (e.target.files[0]) fileToCanvas(e.target.files[0], function (c) { setPhoto(cropPortrait(c)); }, 1600); }
+
+// ---------------- signature ----------------
+function cleanSignature(c) {   // dark ink on light paper -> dark ink on transparent, cropped
+  var w = c.width, h = c.height, x = c.getContext('2d'), id = x.getImageData(0, 0, w, h), d = id.data, lum = new Float32Array(w * h), sum = 0;
+  for (var i = 0; i < w * h; i++) { lum[i] = 0.3 * d[i * 4] + 0.59 * d[i * 4 + 1] + 0.11 * d[i * 4 + 2]; sum += lum[i]; }
+  var mean = sum / (w * h), thr = Math.min(mean * 0.72, mean - 25), minX = w, minY = h, maxX = 0, maxY = 0, cnt = 0;
+  for (var y = 0; y < h; y++) for (var xx = 0; xx < w; xx++) {
+    var k = y * w + xx, ink = lum[k] < thr;
+    d[k * 4] = 10; d[k * 4 + 1] = 20; d[k * 4 + 2] = 90; d[k * 4 + 3] = ink ? 255 : 0;
+    if (ink) { cnt++; if (xx < minX) minX = xx; if (xx > maxX) maxX = xx; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+  }
+  if (cnt < 30) return null;
+  x.putImageData(id, 0, 0);
+  var pad = 12, bw = maxX - minX + 1 + 2 * pad, bh = maxY - minY + 1 + 2 * pad, o = document.createElement('canvas'), sc = Math.min(1, 600 / bw);
+  o.width = Math.round(bw * sc); o.height = Math.round(bh * sc);
+  o.getContext('2d').drawImage(c, minX - pad, minY - pad, bw, bh, 0, 0, o.width, o.height);
+  return o.toDataURL('image/png');
+}
+function setSign(url) { S.sign = url; $('sigPrev').innerHTML = url ? '<img src="' + url + '" style="max-height:100px;max-width:100%">' : 'None yet'; }
+function handleSignCanvas(c) { var u = cleanSignature(c); if (u) setSign(u); else alert('Could not see the signature. Use a dark pen, white paper, good light, and fill the frame.'); }
+function addSign() { if ($('camSel').value) openCam('Show the signed paper', 'sign', 'sign', handleSignCanvas); else alert('Camera not available. Use Choose file.'); }
+function signFile(e) { if (e.target.files[0]) fileToCanvas(e.target.files[0], handleSignCanvas, 1600); }
+var pad = $('sigpad'), pctx = pad.getContext('2d'), drawing = false;
+pctx.lineWidth = 3; pctx.lineCap = 'round'; pctx.strokeStyle = '#0a145a';
+function pp(e) { var r = pad.getBoundingClientRect(); return [(e.clientX - r.left) * pad.width / r.width, (e.clientY - r.top) * pad.height / r.height]; }
+pad.addEventListener('pointerdown', function (e) { drawing = true; var p = pp(e); pctx.beginPath(); pctx.moveTo(p[0], p[1]); pad.setPointerCapture(e.pointerId); });
+pad.addEventListener('pointermove', function (e) { if (!drawing) return; var p = pp(e); pctx.lineTo(p[0], p[1]); pctx.stroke(); });
+pad.addEventListener('pointerup', function () { drawing = false; });
+function padClear() { pctx.clearRect(0, 0, pad.width, pad.height); }
+function padUse() {
+  var id = pctx.getImageData(0, 0, pad.width, pad.height).data, minX = pad.width, minY = pad.height, maxX = 0, maxY = 0, n = 0;
+  for (var y = 0; y < pad.height; y++) for (var x = 0; x < pad.width; x++) if (id[(y * pad.width + x) * 4 + 3] > 40) { n++; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+  if (n < 30) { alert('Please sign first.'); return; }
+  var o = document.createElement('canvas'); o.width = maxX - minX + 20; o.height = maxY - minY + 20;
+  o.getContext('2d').drawImage(pad, minX - 10, minY - 10, o.width, o.height, 0, 0, o.width, o.height); setSign(o.toDataURL('image/png'));
+}
+
+// ---------------- review ----------------
+var focused = null;
+function focusF(el) { focused = el; }
+function fieldHtml(list) { return list.map(function (f) { return '<div><label>' + f[1] + ' <span class="src" id="src_' + f[0] + '"></span></label><input id="f_' + f[0] + '" onfocus="focusF(this)" oninput="manual(\'' + f[0] + '\',this.value)"></div>'; }).join(''); }
+function manual(k, v) { S.fields[k] = v; S.src[k] = 'manual'; var s = $('src_' + k); if (s) s.textContent = '(typed)'; if (k === 'dob') ageNote(); }
+function ageNote() { var a = ageOf($('f_dob').value); $('chk').innerHTML = a !== '' ? '<div class="msg i">Age: <b>' + a + '</b> years</div>' : ''; }
+function ageOf(dob) { var m = String(dob).match(/(\d{2})\/(\d{2})\/(\d{4})/); if (!m) return ''; var b = new Date(+m[3], +m[2] - 1, +m[1]), n = new Date(), a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a >= 0 && a < 120 ? a : ''; }
+function buildReview() {
+  $('fA').innerHTML = fieldHtml(FIELDS_A); $('fB').innerHTML = fieldHtml(FIELDS_B); $('fC').innerHTML = fieldHtml(FIELDS_C);
+  FIELDS_A.concat(FIELDS_B, FIELDS_C).forEach(function (f) { $('f_' + f[0]).value = S.fields[f[0]] || ''; var s = $('src_' + f[0]); if (s && S.fields[f[0]]) s.textContent = '(' + (SRCNAME[S.src[f[0]]] || '') + ')'; });
+  $('f_address').value = S.fields.address || ''; $('src_address').textContent = S.fields.address ? '(' + (SRCNAME[S.src.address] || '') + ')' : '';
+  $('f_address').oninput = function () { manual('address', this.value); };
+  $('addrAlt').innerHTML = S.addrAlts.length > 1 ? '<div class="msg w"><b>Different addresses found. Choose one:</b>' + S.addrAlts.map(function (a, i) { return '<div><label style="display:block;font-weight:normal;margin:4px 0"><input type="radio" name="aa" style="width:auto" onchange="pickAddr(' + i + ')"> <b>' + esc(SRCNAME[a.src] || a.src) + ':</b> ' + esc(a.text) + '</label></div>'; }).join('') + '</div>' : '';
+  $('rvPhoto').innerHTML = S.photo ? '<img src="' + S.photo + '" style="max-width:100%;max-height:100%">' : 'No photo';
+  $('rvSign').innerHTML = S.sign ? '<img src="' + S.sign + '" style="max-height:70px;max-width:100%">' : 'None';
+  var all = []; S.docs.forEach(function (d) { (d.lines || []).forEach(function (l) { all.push(l); }); });
+  $('allLines').innerHTML = all.length ? all.map(function (l) { return '<div onclick="useLine(this)">' + esc(l) + '</div>'; }).join('') : '<i>No text read.</i>';
+  ageNote();
+  $('f_profession').setAttribute('list', 'profList');
+  var pin = S.fields.pincode || ''; if (!$('f_pin').value) $('f_pin').value = pin;
+  $('f_same').checked = !!(S.fields.address); sameChg();
+  if (!S.fields.aadhaar && S.fields.aadhaar4) $('src_aadhaar').textContent = '(QR gives only last 4: ' + S.fields.aadhaar4 + ' - type all 12 digits)';
+}
+function sameChg() { $('presentBox').style.display = $('f_same').checked ? 'none' : 'block'; }
+function pickAddr(i) { var a = S.addrAlts[i]; $('f_address').value = a.text; manual('address', a.text); $('src_address').textContent = '(' + (SRCNAME[a.src] || a.src) + ')'; }
+function useLine(div) {
+  var t = div.textContent; if (!focused) { alert('First click the field where this text should go.'); return; }
+  focused.value = (focused.tagName === 'TEXTAREA' && focused.value) ? focused.value + ', ' + t : t;
+  focused.dispatchEvent(new Event('input'));
+}
+function addrText(o) {
+  var base;
+  if (o.same && String(o.address || '').trim()) base = String(o.address).trim();
+  else { base = [o.house, o.street, o.line3, o.post, o.taluk, o.district].map(function (s) { return String(s || '').trim(); }).filter(String).join(', '); if (o.pin) base += (base ? ' - ' : '') + o.pin; }
+  var ex = []; if (o.aadhaar) ex.push('AADHAR: ' + o.aadhaar); if (o.mobile) ex.push('MOBILE: ' + o.mobile);
+  return base + (ex.length ? (base ? ', ' : '') + ex.join(', ') : '');
+}
+var saving = false;
+async function approve() {
+  if (saving) return;
+  var f = {}; FIELDS_A.concat(FIELDS_B, FIELDS_C).forEach(function (x) { f[x[0]] = ($('f_' + x[0]).value || '').trim(); }); f.address = $('f_address').value.trim();
+  f.mobile = f.mobile.replace(/\D/g, '').slice(-10); f.aadhaar = f.aadhaar.replace(/\D/g, '');
+  var same = $('f_same').checked;
+  var pres = { house: $('f_house').value.trim(), street: $('f_street').value.trim(), line3: $('f_line3').value.trim(), post: $('f_post').value.trim(), taluk: $('f_taluk').value.trim(), district: $('f_district').value.trim(), pin: $('f_pin').value.replace(/\D/g, '').slice(0, 6) };
+  if (!f.name) { alert('Name is needed.'); return; }
+  if (f.mobile && f.mobile.length !== 10) { alert('Mobile must be 10 digits.'); return; }
+  if (f.aadhaar && f.aadhaar.length !== 12) { alert('Aadhaar number must be 12 digits (or leave it empty).'); return; }
+  if (same && !f.address) { alert('Type the address, or untick "This is also the present address" and fill the present address.'); return; }
+  if (!same && !(pres.house || pres.street || pres.post || pres.district)) { alert('Fill the present address.'); return; }
+  var miss = []; if (!f.mobile) miss.push('Mobile'); if (!f.aadhaar) miss.push('Aadhaar number'); if (!S.photo) miss.push('Photo'); if (!S.sign) miss.push('Signature');
+  if (miss.length && !confirm('Missing: ' + miss.join(', ') + '. Save anyway?')) return;
+  var rec = {
+    type: $('f_type').value, name: f.name, mobile: f.mobile, email: f.email, gender: f.gender, age: String(ageOf(f.dob)), dob: f.dob, father: f.careof,
+    profession: f.profession, qualification: f.qualification, books: $('f_books').value, aadhaar: f.aadhaar, aadhaarAddress: f.address,
+    addressSource: same ? 'Aadhaar' : 'Declared', house: pres.house, street: pres.street, line3: pres.line3, post: pres.post, taluk: pres.taluk, district: pres.district, pin: pres.pin,
+    officeAddress: $('f_office').value.trim(), formNo: $('f_formNo').value.trim(), receiptBookNo: $('f_rbook').value.trim(), enteredBy: $('enteredBy').value.trim(),
+    photo: S.photo, signature: S.sign, notes: [f.voter ? 'Voter ID ' + f.voter : '', f.ration ? 'Ration ' + f.ration : ''].filter(String).join('; ')
+  };
+  saving = true; $('saveBtn').disabled = true; $('saveBtn').textContent = 'Saving...';
+  try {
+    var r = await rk({ action: 'submit', rec: rec });
+    var show = { name: f.name, mobile: f.mobile, dob: f.dob, age: rec.age, gender: f.gender, careof: f.careof, email: f.email, aadhaar4: f.aadhaar.slice(-4), voter: f.voter, ration: f.ration, profession: f.profession, qualification: f.qualification, sign: S.sign, address: addrText({ same: same, address: f.address, house: pres.house, street: pres.street, line3: pres.line3, post: pres.post, taluk: pres.taluk, district: pres.district, pin: pres.pin }).replace(/, AADHAR:.*$/, '') };
+    S.last = show;
+    $('doneMsg').innerHTML = 'Saved <b>' + esc(f.name) + '</b> as <b>PENDING</b>. Open <b>Pending approvals</b> to approve and get the member ID.' + (r.dup && r.dup.length ? '<br><span style="color:#b3261e"><b>Check:</b> ' + r.dup.map(esc).join('; ') + '</span>' : '');
+    go(5); refreshInit();
+  } catch (e) { alert('NOT saved: ' + e.message + '\n\nYour entries are still on the screen. Fix the problem and press Save again.'); }
+  saving = false; $('saveBtn').disabled = false; $('saveBtn').textContent = 'Save for approval';
+}
+function newMember() { ['f_formNo','f_rbook','f_office','f_house','f_street','f_line3','f_post','f_pin'].forEach(function (i) { if ($(i)) $(i).value = ''; }); S.docs = []; S.photo = ''; S.sign = ''; S.fields = {}; S.src = {}; S.addrAlts = []; $('docs').innerHTML = ''; $('docMsg').innerHTML = ''; $('photoPrev').textContent = 'No photo'; setSign(''); padClear(); go(1); }
+
+// ---------------- print ----------------
+function printForm() {
+  var f = S.last; if (!f) return;
+  var rows = [['Name', f.name], ['Father / Husband / C-O', f.careof], ['Date of birth / Age', f.dob + (f.age ? ' (' + f.age + ' yrs)' : '')], ['Gender', f.gender], ['Address', f.address + (f.pincode ? ' - ' + f.pincode : '')], ['Mobile', f.mobile], ['E-mail', f.email], ['Aadhaar', f.aadhaar4 ? 'XXXX XXXX ' + f.aadhaar4 : ''], ['Voter ID', f.voter], ['Ration card', f.ration], ['Profession', f.profession], ['Qualification', f.qualification]].filter(function (r) { return r[1]; });
+  $('pa').innerHTML = '<div class="pr"><h1>' + esc(LIBN[0]) + ' - ' + esc(LIBN[1]) + '</h1><h2>Library Membership Application Form</h2>' +
+    '<div style="display:flex;gap:14px"><table style="flex:1;border-collapse:collapse">' + rows.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td></tr>'; }).join('') + '</table>' +
+    '<div style="width:38mm;height:48mm;border:1px solid #444;display:flex;align-items:center;justify-content:center">' + (f.photo ? '<img src="' + f.photo + '" style="width:100%;height:100%;object-fit:cover">' : 'Photo') + '</div></div>' +
+    '<div style="display:flex;justify-content:space-between;margin-top:30mm"><div style="width:60mm;text-align:center">' + (f.sign ? '<img src="' + f.sign + '" style="max-height:18mm"><br>' : '<br><br>') + '<div style="border-top:1px solid #000">Signature of the applicant</div></div><div style="width:70mm;text-align:center"><br><br><div style="border-top:1px solid #000">Signature of Gazetted Officer with seal</div></div></div>' +
+    '<p style="font-size:11px;margin-top:10mm">Date: ' + new Date().toLocaleDateString('en-GB') + '</p></div>';
+  window.print();
+}
+
+stepsBar();
+// ---------------- server (Apps Script web app) ----------------
+var APIS = {
+  honavar: 'https://script.google.com/macros/s/AKfycbwIc6HXYxQoWzhJq9AcPv6uvrn8RXJ71-577cB6GNdTf03VEig29iM-LLhafmAgiaGvPg/exec',
+  kumta: '', 'sdm-degree': '', 'sdm-pu': ''
+};
+var API = APIS[LIBKEY] || '';
+if (!API) { try { API = localStorage.getItem('rk_api_' + LIBKEY) || ''; } catch (e) {} }
+if (!API) { API = (prompt('Paste the web app address of this library (it ends with /exec). Asked only once on this device.') || '').trim(); if (API) { try { localStorage.setItem('rk_api_' + LIBKEY, API); } catch (e) {} } }
+var PIN = '', INIT = null, PEND = [];
+function rk(req) {
+  if (!API) return Promise.reject(new Error('This library is not connected yet.'));
+  if (!PIN) return Promise.reject(new Error('Enter the PIN and press Connect.'));
+  req.pin = PIN;
+  var ctl = new AbortController(); var tm = setTimeout(function () { ctl.abort(); }, 120000);
+  return fetch(API, { method: 'POST', credentials: 'omit', redirect: 'follow', signal: ctl.signal, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'rkApi', args: [req] }) })
+    .then(function (r) { clearTimeout(tm); return r.json(); })
+    .then(function (j) { if (j && j.ok) return j.result; throw new Error((j && j.error) || 'Server error'); })
+    .catch(function (e) { clearTimeout(tm); throw new Error(e.name === 'AbortError' ? 'No answer from the server (timed out). Check the internet and try again.' : e.message); });
+}
+function saveLogin() {
+  PIN = $('pin').value.trim(); try { sessionStorage.setItem('rk_pin', PIN); localStorage.setItem('rk_by', $('enteredBy').value.trim()); } catch (e) {}
+  refreshInit(true);
+}
+async function refreshInit(show) {
+  try {
+    INIT = await rk({ action: 'init' });
+    $('apiMsg').innerHTML = '<span style="color:#1b7a3a">Connected.</span>';
+    $('nextId').innerHTML = 'Next member ID: <b>' + INIT.nextMemberId + '</b> &nbsp; Next visitor ID: <b>' + INIT.nextNonMemberId + '</b>';
+    $('pendBtn').textContent = 'Pending approvals (' + INIT.pending + ')';
+    $('profList').innerHTML = INIT.professions.map(function (p) { return '<option value="' + esc(p) + '">'; }).join('');
+  } catch (e) { $('apiMsg').innerHTML = '<span style="color:#b3261e">' + esc(e.message) + '</span>'; }
+}
+function driveId(u) { var m = String(u || '').match(/\/d\/([-\w]{15,})/) || String(u || '').match(/[?&]id=([-\w]{15,})/); return m ? m[1] : ''; }
+function thumb(u, w) { var id = driveId(u); return id ? 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 300) : ''; }
+var FEE = { '1': 112, '2': 162, '3': 212 };
+async function showPending() {
+  go(6); $('pDetail').innerHTML = '';
+  if (!PIN) { $('pList').innerHTML = '<div class="msg w">Enter the PIN and press Connect first.</div>'; return; }
+  $('pList').innerHTML = '<i>Loading...</i>';
+  try {
+    PEND = await rk({ action: 'pending' });
+    $('pList').innerHTML = PEND.length ? '<table><tr><th>Name</th><th>Type</th><th>Mobile</th><th>Books</th><th>Entered by</th><th>When</th><th></th></tr>' + PEND.map(function (p, i) { return '<tr><td>' + esc(p.Name) + '</td><td>' + esc(p.Type) + '</td><td>' + esc(p.Mobile) + '</td><td>' + esc(p['Books (1/2/3)']) + '</td><td>' + esc(p['Entered By']) + '</td><td>' + esc(p['Submitted At']) + '</td><td><button onclick="openPend(' + i + ')">Open</button></td></tr>'; }).join('') + '</table>' : '<div class="msg ok">No pending forms.</div>';
+    var rec = await rk({ action: 'recent' });
+    $('rList').innerHTML = rec.length ? '<table><tr><th>ID</th><th>Name</th><th>Type</th><th>Mobile</th><th>Approved</th></tr>' + rec.map(function (p) { return '<tr><td><b>' + esc(p['Member ID']) + '</b></td><td>' + esc(p.Name) + '</td><td>' + esc(p.Type) + '</td><td>' + esc(p.Mobile) + '</td><td>' + esc(p['Approved At']) + '</td></tr>'; }).join('') + '</table>' : '<i>None yet.</i>';
+    refreshInit();
+  } catch (e) { $('pList').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
+function pAddr(p) {
+  return addrText({ same: p['Address Source'] === 'Aadhaar', address: p['Aadhaar Address'], house: p.House, street: p.Street, line3: p['Line 3'], post: p.Post, taluk: p.Taluk, district: p.District, pin: p.Pin, aadhaar: p['Aadhaar No (full)'], mobile: p.Mobile });
+}
+function openPend(i) {
+  var p = PEND[i]; S.pi = i;
+  var bk = p['Books (1/2/3)'] || '1';
+  $('pDetail').innerHTML = '<div class="box" style="border:2px solid var(--gold)"><h2>' + esc(p.Name) + ' - ' + esc(p.Type) + '</h2>' +
+    '<div class="row"><div style="max-width:150px">' + (thumb(p['Photo Link'], 300) ? '<img src="' + thumb(p['Photo Link'], 300) + '" style="width:100%;border-radius:8px">' : '<div class="sigprev">No photo</div>') + '</div>' +
+    '<div style="flex:3"><div class="msg i"><b>Address that will be saved:</b><br>' + esc(pAddr(p)) + '</div>' +
+    '<div class="msg i">Father/Husband: ' + esc(p['Father/Husband']) + ' &nbsp; DOB: ' + esc(p.DOB) + ' &nbsp; Age: ' + esc(p.Age) + ' &nbsp; Gender: ' + esc(p.Gender) + '<br>Office: ' + esc(p['Office Address']) + '<br>Form no: ' + esc(p['Form No']) + ' &nbsp; Receipt book: ' + esc(p['Receipt Book No']) + '</div>' +
+    (thumb(p['Signature Link'], 300) ? '<div class="sigprev" style="height:70px;max-width:260px"><img src="' + thumb(p['Signature Link'], 300) + '" style="max-height:60px"></div>' : '') + '</div></div>' +
+    '<div class="row"><div><label>Name</label><input id="e_name" value="' + esc(p.Name) + '"></div><div><label>Mobile</label><input id="e_mobile" value="' + esc(p.Mobile) + '"></div><div><label>E-mail</label><input id="e_email" value="' + esc(p.Email) + '"></div>' +
+    '<div><label>Profession</label><input id="e_prof" list="profList" value="' + esc(p.Profession) + '"></div></div>' +
+    '<div class="row"><div><label>Books</label><select id="e_books" onchange="$(\'e_amt\').value=FEE[this.value]"><option value="1">1 book</option><option value="2">2 books</option><option value="3">3 books</option></select></div>' +
+    '<div><label>Amount paid (Rs.)</label><input id="e_amt" value="' + (FEE[bk] || '') + '"></div><div><label>Receipt no.</label><input id="e_rno" value=""></div>' +
+    '<div><label>Receipt date</label><input id="e_rdt" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></div></div>' +
+    '<p><button class="g" onclick="doApprove(false)" id="apBtn">Approve - give member ID</button> <button class="r" onclick="doReject()">Reject</button> <button class="s" onclick="$(\'pDetail\').innerHTML=\'\'">Close</button></p><div id="apMsg"></div></div>';
+  $('e_books').value = bk;
+  $('pDetail').scrollIntoView();
+}
+async function doApprove(force) {
+  var p = PEND[S.pi]; if (!p) return;
+  $('apBtn').disabled = true; $('apMsg').innerHTML = '<i>Saving...</i>';
+  try {
+    var edit = { 'Name': $('e_name').value.trim(), 'Mobile': $('e_mobile').value.replace(/\D/g, '').slice(-10), 'Email': $('e_email').value.trim(), 'Profession': $('e_prof').value.trim(), 'Books (1/2/3)': $('e_books').value, amount: $('e_amt').value, receiptNo: $('e_rno').value.trim(), receiptDate: $('e_rdt').value };
+    var r = await rk({ action: 'approve', key: p.Key, edit: edit, force: !!force });
+    if (r.needsConfirm) {
+      $('apMsg').innerHTML = '<div class="msg w"><b>Possible duplicate:</b><br>' + r.duplicates.map(esc).join('<br>') + '<br><button class="r" onclick="doApprove(true)">Approve anyway</button></div>';
+      $('apBtn').disabled = false; return;
+    }
+    $('pDetail').innerHTML = '<div class="box" style="border:2px solid var(--ok)"><h2 style="color:#1b7a3a">Approved</h2><div style="font-size:34px;font-weight:bold">' + esc(r.type === 'Non-Member' ? 'Visitor' : 'Member') + ' ID: ' + esc(r.id) + '</div><div>' + esc(r.name) + '</div><div class="msg i">Write this ID in the enrollment register and on the receipt.</div></div>';
+    showPendingSilent();
+  } catch (e) { $('apMsg').innerHTML = '<div class="msg er">NOT saved: ' + esc(e.message) + '</div>'; $('apBtn').disabled = false; }
+}
+async function showPendingSilent() { var keep = $('pDetail').innerHTML; await showPending(); $('pDetail').innerHTML = keep; }
+async function doReject() {
+  var p = PEND[S.pi]; if (!p) return;
+  var why = prompt('Reason for rejecting (optional):'); if (why === null) return;
+  try { await rk({ action: 'reject', key: p.Key, reason: why }); showPending(); } catch (e) { $('apMsg').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
+try { $('pin').value = sessionStorage.getItem('rk_pin') || ''; $('enteredBy').value = localStorage.getItem('rk_by') || ''; if ($('pin').value) { PIN = $('pin').value; refreshInit(); } } catch (e) {}
+if (!API) $('apiMsg').innerHTML = '<span style="color:#b3261e">This library is not connected yet (no server address).</span>';
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) listCams(); else $('camSel').innerHTML = '<option value="">Camera not available</option>';
+</script></body></html>
