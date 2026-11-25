@@ -97,7 +97,7 @@ table.bt img{width:42px;border-radius:4px}
 .bkq{font-size:13px}.bkq div{padding:4px 8px;border-bottom:1px solid var(--line)}
 </style>
 </head><body>
-<header><h1>New Book Desk</h1><small>ಹೊಸ ಪುಸ್ತಕ ನೋಂದಣಿ - batch entry &middot; version 25-Nov camera</small></header>
+<header><h1>New Book Desk</h1><small>ಹೊಸ ಪುಸ್ತಕ ನೋಂದಣಿ - batch entry &middot; version 25-Nov ISBN</small></header>
 <div class="trial" id="bar">
   <div class="row" style="align-items:flex-end">
     <div style="max-width:170px"><label>Kiosk PIN</label><input id="pin" type="password" autocomplete="off" placeholder="PIN"></div>
@@ -112,6 +112,7 @@ table.bt img{width:42px;border-radius:4px}
   <button id="t2" onclick="tab(2)">2  Add books <span id="n2"></span></button>
   <button id="t4" onclick="tab(4)">2b  Photo basket (many books)</button>
   <button id="t3" onclick="tab(3)">3  Verify and submit <span id="n3"></span></button>
+  <button id="t5" onclick="tab(5)">4  Old book / ISBN</button>
 </div>
 
 <!-- 1: batch settings -->
@@ -209,10 +210,22 @@ table.bt img{width:42px;border-radius:4px}
   <div id="subMsg"></div>
 </div>
 
+<div id="p5" class="box" style="display:none">
+  <h2>Old book / ISBN &nbsp;<small>ಹಳೆಯ ಪುಸ್ತಕ</small></h2>
+  <p style="margin:0 0 6px">Type the accession number of a book that is already in the sheet. Change any detail, add a cover photo, or type / scan the ISBN to fill the details. Every change is kept in the sheet <b>BOOK_EDIT_LOG</b> (old and new value).</p>
+  <div class="row" style="align-items:flex-end">
+    <div style="max-width:240px"><label>Accession number</label><input id="eb_id" autocomplete="off" onkeydown="if(event.key==='Enter')ebOpen()"></div>
+    <div style="flex:0 0 auto;min-width:0"><button class="g" onclick="ebOpen()">Open book</button></div>
+  </div>
+  <div id="eb_msg"></div>
+  <div id="eb_form"></div>
+</div>
+
 <datalist id="genreList"><option value="ಕಾದಂಬರಿ"><option value="ಕಥಾ ಸಂಕಲನ"><option value="ಕವನ ಸಂಕಲನ"><option value="ಜೀವನ ಚರಿತ್ರೆ"><option value="ಪ್ರಬಂಧ"><option value="ನಾಟಕ"><option value="ಮಕ್ಕಳ ಸಾಹಿತ್ಯ"></datalist>
 </div>
 <canvas id="work" style="display:none"></canvas>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
@@ -262,7 +275,7 @@ async function refreshInit() {
 }
 
 // ---------------- tabs ----------------
-function tab(n) { for (var i = 1; i <= 4; i++) { $('p' + i).style.display = i === n ? 'block' : 'none'; $('t' + i).className = i === n ? 'on' : ''; } if (n === 3) loadBatch(); if (n === 4) { bkQueueRefresh(); } window.scrollTo(0, 0); }
+function tab(n) { for (var i = 1; i <= 5; i++) { $('p' + i).style.display = i === n ? 'block' : 'none'; $('t' + i).className = i === n ? 'on' : ''; } if (n === 3) loadBatch(); if (n === 4) { bkQueueRefresh(); } window.scrollTo(0, 0); }
 
 // ---------------- batch settings ----------------
 function fyList() {
@@ -355,6 +368,7 @@ function camShoot() {
     var name = 'cam_' + String(CAM.shots.length + 1).padStart(4, '0') + '.jpg';
     var f = new File([blob], name, { type: 'image/jpeg' });
     if (CAM.target === 'basket') { CAM.shots.push(f); $('camMsg').textContent = CAM.shots.length + ' photo(s) taken. Press Done when finished.'; }
+    else if (CAM.target === 'ebcover') { camClose(true); ebCoverFile(f); }
     else { var t = CAM.target; camClose(true); pick(t, { files: [f], value: '' }); }
   }, 'image/jpeg', 0.92);
 }
@@ -524,6 +538,7 @@ function editBook(i) {
   var h = '<div class="box" style="border:2px solid var(--gold);margin-top:12px"><h2>Edit: ' + esc(d.title) + '</h2><div class="row">' + fld('title', 'Title', 2) + fld('subtitle', 'Subtitle', 2) + '</div><div class="row">' + fld('titleEn', 'Title in English letters', 2) + fld('author', 'Author', 2) + fld('authorEn', 'Author in English letters', 2) + '</div>' +
     '<div class="row">' + fld('genre', 'Genre', 1, 'list="genreList"') + fld('language', 'Language') + fld('publisher', 'Publisher') + fld('place', 'Place') + '</div>' +
     '<div class="row">' + fld('year', 'Year') + fld('pages', 'Pages') + fld('price', 'Price') + fld('size', 'Size') + fld('isbn', 'ISBN') + fld('edition', 'Edition / printing', 2) + '</div>' +
+    '<div class="row"><div style="flex:0 0 auto;min-width:0"><button class="y" onclick="edLookup()">Look up this ISBN - fill the empty boxes</button> <button class="s" onclick="edScan()">Scan ISBN with camera</button> <span id="edIsbnMsg" style="font-size:13px"></span></div></div>' +
     '<label>Summary</label><textarea id="e_summary"></textarea><div class="row">' + fld('keywords', 'Keywords', 3) + '</div>' +
     '<div class="row">' + fld('localClass', 'Local class (e.g. O3:33(2))') + fld('callNo', 'Call number (blank = automatic)') + fld('shelf', 'Shelf / location', 2) + fld('ccClass', 'CC Classification') + fld('ddc', 'DDC Classification') + fld('ccCallNo', 'CC Call Number (blank = automatic)') + '</div>' +
     '<div class="row"><div style="max-width:160px"><label>Number of copies</label><input id="e_copies" type="number" min="1" max="10" oninput="eCopies()"></div><div style="flex:4"><label>Karwar number of each copy</label><div class="row" id="e_karwars"></div></div></div>' +
@@ -880,4 +895,162 @@ async function makeAuthorPhotos() {
 }
 bkModes(); bkFixChg(); bkRender();
 
+
+// ================= ISBN look-up, barcode scan, old-book editor =================
+var LANGN = { kn: 'Kannada', en: 'English', hi: 'Hindi', mr: 'Marathi', sa: 'Sanskrit', ta: 'Tamil', te: 'Telugu', ml: 'Malayalam', ur: 'Urdu', bn: 'Bengali', gu: 'Gujarati', pa: 'Punjabi', or: 'Odia' };
+var ISBN_KEYS = [['title', 'Title'], ['subtitle', 'Subtitle'], ['author', 'Author'], ['publisher', 'Publisher'], ['year', 'Year'], ['pages', 'Pages'], ['place', 'Place'], ['language', 'Language'], ['summary', 'Summary']];
+function zxDecode(canvas) {
+  try {
+    if (!window.ZXing) return '';
+    var hints = new Map();
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13]);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    var reader = new ZXing.MultiFormatReader(); reader.setHints(hints);
+    var bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(canvas)));
+    var t = reader.decode(bmp).getText();
+    return /^97[89]\d{10}$/.test(t) && isbnValid(t) ? t : '';
+  } catch (e) { return ''; }
+}
+function scanOpen(cb) {
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { alert('The camera cannot be used here. Use "Barcode photo" or type the ISBN.'); return; }
+  var ov = document.createElement('div'); ov.className = 'camov'; ov.id = 'scanOv';
+  ov.innerHTML = '<div class="cambox"><video id="scVid" playsinline muted></video><div class="row"><button class="s" id="scCancel">Cancel</button><span id="scMsg" style="font-size:14px;color:#14335f">Hold the barcode (the one with the number 978... under it) in front of the camera, flat and well lit.</span></div></div>';
+  document.body.appendChild(ov);
+  var stream = null, timer = null, busy = false;
+  function stop() { if (timer) clearInterval(timer); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); ov.remove(); }
+  $('scCancel').onclick = stop;
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false }).then(function (s) {
+    stream = s; var v = $('scVid'); v.srcObject = s; v.play();
+    timer = setInterval(function () {
+      if (busy || !v.videoWidth) return; busy = true;
+      try {
+        var c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);
+        var t = zxDecode(c); if (t) { stop(); cb(t); return; }
+      } catch (e) {}
+      busy = false;
+    }, 300);
+  }).catch(function (e) { stop(); alert('The camera could not be opened (' + (e && e.name || 'error') + '). Allow the camera for this page, or use "Barcode photo".'); });
+}
+function barFile(file, cb) {
+  var url = URL.createObjectURL(file), im = new Image();
+  im.onload = function () {
+    var found = '';
+    [1600, 1100, 2400].forEach(function (side) {
+      if (found) return;
+      var sc = Math.min(2, side / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      found = zxDecode(c);
+    });
+    URL.revokeObjectURL(url); cb(found);
+  };
+  im.onerror = function () { cb(''); }; im.src = url;
+}
+function isbnFound(r) { return r && r.found; }
+function nbIsbn(isbn) { return nb({ action: 'isbn', isbn: isbn }); }
+
+// ---- tab 3: look up inside the new-book edit form ----
+async function edLookup() {
+  var m = $('edIsbnMsg'), isbn = ($('e_isbn').value || '').replace(/[^0-9Xx]/g, '');
+  if (isbn.length !== 10 && isbn.length !== 13) { m.innerHTML = '<span class="er">Type the ISBN (10 or 13 digits) first.</span>'; return; }
+  m.textContent = 'Looking up...';
+  try {
+    var r = await nbIsbn(isbn);
+    if (!r.found) { m.innerHTML = '<span class="er">' + esc(r.message || 'Not found.') + '</span>'; return; }
+    var filled = [];
+    ISBN_KEYS.forEach(function (k) {
+      var el = $('e_' + k[0]), v = r[k[0]]; if (k[0] === 'language' && v) v = LANGN[v] || v;
+      if (el && v && !String(el.value).trim()) { el.value = v; filled.push(k[1]); }
+    });
+    m.innerHTML = '<span class="ok">Found in ' + esc(r.source) + '. ' + (filled.length ? 'Filled: ' + esc(filled.join(', ')) : 'All boxes already had values - nothing changed') + '.</span>';
+  } catch (e) { m.innerHTML = '<span class="er">' + esc(e.message) + '</span>'; }
+}
+function edScan() { scanOpen(function (t) { $('e_isbn').value = t; edLookup(); }); }
+
+// ---- tab 5: old-book editor ----
+var EB = { id: '', orig: null, cover: '', coverUrl: '', isbn: null };
+var EBF = [['title', 'Title', 2], ['author', 'Author', 2], ['publisher', 'Publisher', 2], ['place', 'Place', 1], ['year', 'Publication year', 1], ['pages', 'Pages', 1], ['price', 'Price', 1], ['language', 'Language', 1], ['titleEn', 'Title (English)', 2], ['authorEn', 'Author (English)', 2], ['subtitle', 'Subtitle', 2], ['edition', 'Edition / printing', 1], ['size', 'Size', 1], ['remarks', 'Remarks', 2]];
+function ebMsg(h, cls) { $('eb_msg').innerHTML = h ? '<div class="msg ' + (cls || 'i') + '">' + h + '</div>' : ''; }
+async function ebOpen() {
+  var id = $('eb_id').value.trim(); if (!id) { ebMsg('Type the accession number.', 'er'); return; }
+  ebMsg('Opening...'); $('eb_form').innerHTML = '';
+  try { var b = await nb({ action: 'eget', id: id }); ebShow(b); ebMsg(''); } catch (e) { ebMsg(esc(e.message), 'er'); }
+}
+function ebShow(b) {
+  EB.id = b.id; EB.orig = b.fields; EB.cover = ''; EB.coverUrl = ''; EB.isbn = null;
+  var h = '<div class="box" style="margin-top:10px;background:#fafbff"><p style="margin:0 0 6px"><b>Accession no. ' + esc(b.id) + '</b> &middot; row ' + b.row + (b.callNo ? ' &middot; call no. ' + esc(b.callNo) : '') + (b.status ? ' &middot; ' + esc(b.status) : '') + '</p>';
+  if (b.missing && b.missing.length) h += '<div class="msg w">These headings are missing in the sheet, so they cannot be changed: ' + esc(b.missing.join(', ')) + ' (run nbSetupColumns once).</div>';
+  h += '<div class="row" style="align-items:flex-start"><div style="flex:0 0 150px;min-width:150px"><label>Cover photo</label><div id="eb_cur">' + (b.cover ? '<img src="' + esc(b.cover) + '" style="width:140px;border-radius:6px;border:1px solid #ccd">' : '<div style="width:140px;height:190px;border:1px dashed #aab;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#778;font-size:13px;text-align:center">No cover photo yet</div>') + '</div><div id="eb_new" style="margin-top:6px"></div></div>' +
+    '<div style="flex:3;min-width:240px"><label>Cover photo - take or choose</label><div><button type="button" class="fbtn" onclick="camBtn(\'ebcover\',\'ebFile\')">Take a photo</button> <label class="fbtn s" style="display:inline-block">Choose a file<input type="file" id="ebFile" accept="image/*" onchange="ebCoverFile(this.files[0]);this.value=\'\'"></label> <button class="s" onclick="ebCoverClear()">Remove new photo</button></div>' +
+    '<label>ISBN</label><div class="row"><div style="flex:2"><input id="e_isbn_eb" inputmode="numeric" placeholder="978..." value="' + esc(b.fields.isbn || '') + '"></div><div style="flex:3;min-width:0"><button class="y" onclick="ebLookup()">Look up ISBN</button> <button class="s" onclick="ebScan()">Scan barcode</button> <label class="fbtn s" style="display:inline-block">Barcode photo<input type="file" accept="image/*" onchange="ebBarPhoto(this.files[0]);this.value=\'\'"></label></div></div>' +
+    '<div id="eb_isbnres"></div></div></div>' +
+    '<div class="row">';
+  EBF.forEach(function (f) { if (b.fields[f.k === undefined ? f[0] : f[0]] === null) return; h += '<div style="flex:' + f[2] + ';min-width:150px"><label>' + f[1] + '</label><input id="eb_' + f[0] + '"></div>'; });
+  h += '</div><label>Summary</label><textarea id="eb_summary" rows="3"></textarea><label>Keywords</label><input id="eb_keywords">' +
+    '<p style="margin-top:10px"><button class="g" onclick="ebSave()">Save changes</button> <button class="s" onclick="$(\'eb_form\').innerHTML=\'\'">Close</button></p><div id="eb_savemsg"></div></div>';
+  $('eb_form').innerHTML = h;
+  EBF.forEach(function (f) { var el = $('eb_' + f[0]); if (el) el.value = b.fields[f[0]] == null ? '' : b.fields[f[0]]; });
+  ['summary', 'keywords'].forEach(function (k) { var el = $('eb_' + k); if (el && b.fields[k] != null) el.value = b.fields[k]; });
+}
+function ebCoverFile(f) {
+  if (!f) return;
+  var url = URL.createObjectURL(f);
+  shrinkTo(url, 1000, 110).then(function (d) {
+    URL.revokeObjectURL(url);
+    if (!d) { ebMsg('Could not open this picture.', 'er'); return; }
+    EB.cover = d; EB.coverUrl = '';
+    $('eb_new').innerHTML = '<div style="font-size:12px;color:#14335f">New photo (not saved yet):</div><img src="' + d + '" style="width:140px;border-radius:6px;border:2px solid #1a7f3c">';
+  });
+}
+function ebCoverClear() { EB.cover = ''; EB.coverUrl = ''; if ($('eb_new')) $('eb_new').innerHTML = ''; }
+async function ebLookup() {
+  var isbn = ($('e_isbn_eb').value || '').replace(/[^0-9Xx]/g, ''), box = $('eb_isbnres');
+  if (isbn.length !== 10 && isbn.length !== 13) { box.innerHTML = '<div class="msg er">Type the ISBN (10 or 13 digits).</div>'; return; }
+  box.innerHTML = '<div class="msg i">Looking up...</div>';
+  try {
+    var r = await nbIsbn(isbn);
+    if (!r.found) { box.innerHTML = '<div class="msg w">' + esc(r.message || 'Not found.') + '</div>'; return; }
+    EB.isbn = r; var rows = '';
+    ISBN_KEYS.forEach(function (k) {
+      var v = r[k[0]]; if (k[0] === 'language' && v) v = LANGN[v] || v; if (!v) return; v = String(v);
+      var el = $('eb_' + k[0]), cur = el ? String(el.value).trim() : ''; if (!el || cur === v) return;
+      rows += '<tr><td><input type="checkbox" class="ebck" data-k="' + k[0] + '" ' + (cur === '' ? 'checked' : '') + ' style="width:auto"></td><td>' + k[1] + '</td><td><small>' + esc(cur) + '</small></td><td>' + esc(v.length > 160 ? v.slice(0, 160) + '...' : v) + '</td><td class="ebv" data-k="' + k[0] + '" style="display:none">' + esc(v) + '</td></tr>';
+    });
+    box.innerHTML = '<div class="msg ok">Found in ' + esc(r.source) + '. Tick what to use (empty boxes are ticked already).</div>' +
+      (rows ? '<table class="bt"><tr><th></th><th>Field</th><th>Now in sheet</th><th>From ISBN</th></tr>' + rows + '</table>' : '<div class="msg i">Nothing new to fill.</div>') +
+      (r.cover && !EB.cover ? '<label style="display:flex;gap:6px;align-items:center;font-weight:normal"><input type="checkbox" id="eb_usecov" style="width:auto" ' + (document.querySelector('#eb_cur img') ? '' : 'checked') + '> Use the cover picture from the ISBN service</label>' : '') +
+      '<p><button class="y" onclick="ebApply()">Use the ticked ones</button></p>';
+  } catch (e) { box.innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
+function ebApply() {
+  var n = 0;
+  [].forEach.call(document.querySelectorAll('.ebck'), function (c) {
+    if (!c.checked) return; var k = c.getAttribute('data-k'), cell = document.querySelector('.ebv[data-k="' + k + '"]');
+    var el = $('eb_' + k); if (el && cell) { el.value = cell.textContent; n++; }
+  });
+  var uc = $('eb_usecov');
+  if (uc && uc.checked && EB.isbn && EB.isbn.cover) { EB.coverUrl = EB.isbn.cover; EB.cover = ''; $('eb_new').innerHTML = '<div style="font-size:12px;color:#14335f">Cover from the ISBN service (saved when you press Save)</div><img src="' + esc(EB.isbn.cover) + '" style="width:140px;border-radius:6px;border:2px solid #1a7f3c" onerror="this.outerHTML=\'<i>(no picture shown)</i>\'">'; }
+  $('eb_isbnres').innerHTML = '<div class="msg ok">' + n + ' box(es) filled. Check them, then press Save changes.</div>';
+}
+function ebScan() { scanOpen(function (t) { $('e_isbn_eb').value = t; ebLookup(); }); }
+function ebBarPhoto(f) { if (!f) return; barFile(f, function (t) { if (t) { $('e_isbn_eb').value = t; ebLookup(); } else $('eb_isbnres').innerHTML = '<div class="msg w">The barcode could not be read from this photo. Take it closer and straight, or type the number printed under the barcode.</div>'; }); }
+async function ebSave() {
+  var changes = {}, o = EB.orig, n = 0;
+  EBF.forEach(function (f) { var el = $('eb_' + f[0]); if (el && String(el.value).trim() !== String(o[f[0]] == null ? '' : o[f[0]]).trim()) { changes[f[0]] = el.value.trim(); n++; } });
+  ['summary', 'keywords'].forEach(function (k) { var el = $('eb_' + k); if (el && String(el.value).trim() !== String(o[k] == null ? '' : o[k]).trim()) { changes[k] = el.value.trim(); n++; } });
+  var isbn = ($('e_isbn_eb').value || '').replace(/[^0-9Xx]/g, '');
+  if (isbn !== String(o.isbn == null ? '' : o.isbn).replace(/[^0-9Xx]/g, '')) {
+    if (isbn && !isbnValid(isbn) && !confirm('The ISBN fails the check digit. Save anyway?')) return;
+    changes.isbn = isbn; n++;
+  }
+  var cover = EB.cover ? { dataUrl: EB.cover } : (EB.coverUrl ? { url: EB.coverUrl } : {});
+  if (!n && !cover.dataUrl && !cover.url) { $('eb_savemsg').innerHTML = '<div class="msg i">Nothing was changed.</div>'; return; }
+  if (!changes.title && changes.title !== undefined) { alert('Title cannot be empty.'); return; }
+  $('eb_savemsg').innerHTML = '<div class="msg i">Saving...</div>';
+  try {
+    var by = ($('enteredBy').value || '').trim();
+    var r = await nb({ action: 'esave', id: EB.id, changes: changes, cover: cover, by: by });
+    ebShow(r.book);
+    $('eb_savemsg').innerHTML = '<div class="msg ok">Saved' + (r.changed.length ? ': ' + esc(r.changed.join(', ')) : '') + (r.cover ? (r.changed.length ? ' and' : ':') + ' cover photo' : '') + '. ' + (r.skipped && r.skipped.length ? 'Not saved: ' + esc(r.skipped.join(', ')) : '') + '</div>';
+  } catch (e) { $('eb_savemsg').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
 </script></body></html>
