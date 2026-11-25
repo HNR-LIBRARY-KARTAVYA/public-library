@@ -69,7 +69,28 @@ table.bt th,table.bt td{border-bottom:1px solid var(--line);padding:5px;text-ali
 table.bt img{width:42px;border-radius:4px}
 .flag{display:inline-block;background:#fde8e6;color:#b3261e;border-radius:6px;padding:1px 6px;margin:1px;font-size:12px}
 .flag.w{background:#fff3d6;color:#8a5a00}
-</style></head><body>
+</style><style>
+.bkbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center}
+.bkbar button,.bkbar .fbtn{padding:10px 13px;font-size:15px}
+.bkcount{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.bkcount div{background:#e8efff;border-radius:8px;padding:6px 12px;font-size:14px}
+.bkcount b{font-size:18px;color:var(--navy)}
+.bkcount .bad{background:#ffdede}.bkcount .good{background:#d9f5e3}
+.bkg{border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0;background:#fafbff}
+.bkg.queued{background:#eefaf1;border-color:#9bd3ae}.bkg.failed{background:#fff0f0;border-color:#e3a3a0}.bkg.uploading{background:#fff8e6}
+.bkh{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px}
+.bkh button{padding:4px 9px;font-size:12px;background:#7a869f}
+.bkp{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.bkp .ph{width:92px;text-align:center;font-size:11px}
+.bkp .ph img{width:92px;height:122px;object-fit:contain;background:#222;border-radius:6px;display:block}
+.bkp .ph button{padding:2px 5px;font-size:11px;margin:2px 1px 0 0;background:#7a869f}
+.bkp .ph button.x{background:var(--bad)}
+#bkProg{height:8px;background:#e1e6f3;border-radius:5px;overflow:hidden;margin:4px 0;display:none}#bkProg div{height:100%;background:var(--ok);width:0}
+.bkfix{display:none;border:1px solid var(--line);border-radius:10px;padding:8px;margin:6px 0;background:#fafbff}
+.bkfix canvas{max-width:100%;border-radius:6px;background:#222}
+.bkq{font-size:13px}.bkq div{padding:4px 8px;border-bottom:1px solid var(--line)}
+</style>
+</head><body>
 <header><h1>New Book Desk</h1><small>ಹೊಸ ಪುಸ್ತಕ ನೋಂದಣಿ - batch entry</small></header>
 <div class="trial" id="bar">
   <div class="row" style="align-items:flex-end">
@@ -83,6 +104,7 @@ table.bt img{width:42px;border-radius:4px}
 <div class="tabs" id="tabs">
   <button id="t1" onclick="tab(1)">1  Batch settings</button>
   <button id="t2" onclick="tab(2)">2  Add books <span id="n2"></span></button>
+  <button id="t4" onclick="tab(4)">2b  Photo basket (many books)</button>
   <button id="t3" onclick="tab(3)">3  Verify and submit <span id="n3"></span></button>
 </div>
 
@@ -121,12 +143,59 @@ table.bt img{width:42px;border-radius:4px}
   <div id="addedList" style="font-size:13px"></div>
 </div>
 
+<!-- 4: photo basket -->
+<div id="p4" class="box" style="display:none">
+  <h2>Photo basket / ಫೋಟೋ ಬುಟ್ಟಿ</h2>
+  <p style="margin:0 0 6px">Take photos of many books with the phone camera on a <b>plain dark or plain light background</b>, book after book. Before each new book, photograph the <b>"Next book" card</b>. Then add all the photos here. The page cuts each photo to the book, groups the photos book by book and sends them. The reading is done afterwards by itself - you do not wait.</p>
+  <div class="bkbar">
+    <button class="y" onclick="bkCard()">Print the "Next book" card</button>
+    <span style="font-size:13px">(print it once, keep it with the camera)</span>
+  </div>
+  <label>Cut the photo to the book</label>
+  <div class="tiles" id="bkModes"></div>
+  <div class="bkfix" id="bkFix">
+    <div style="font-size:13px;margin-bottom:4px">Fixed box: choose one sample photo, then move the sliders until the frame is round the book. The same frame is used for all photos.</div>
+    <label class="fbtn s" style="display:inline-block">Choose a sample photo<input type="file" accept="image/*" onchange="bkSample(this)"></label>
+    <div class="row" style="margin-top:6px">
+      <div><label>Left <span id="fx_l_v"></span>%</label><input type="range" id="fx_l" min="0" max="45" value="5" oninput="bkFixChg()"></div>
+      <div><label>Top <span id="fx_t_v"></span>%</label><input type="range" id="fx_t" min="0" max="45" value="5" oninput="bkFixChg()"></div>
+      <div><label>Right <span id="fx_r_v"></span>%</label><input type="range" id="fx_r" min="0" max="45" value="5" oninput="bkFixChg()"></div>
+      <div><label>Bottom <span id="fx_b_v"></span>%</label><input type="range" id="fx_b" min="0" max="45" value="5" oninput="bkFixChg()"></div>
+    </div>
+    <canvas id="bkPrev" width="10" height="10"></canvas>
+  </div>
+  <div class="bkbar">
+    <label class="fbtn">Add photos<input id="bkFiles" type="file" accept="image/*" multiple onchange="bkPick(this)"></label>
+    <label class="fbtn">Take a photo<input type="file" accept="image/*" capture="environment" onchange="bkPick(this)"></label>
+    <label class="fbtn s">Add a ZIP<input type="file" accept=".zip,application/zip" onchange="bkPick(this)"></label>
+    <label class="fbtn s">Add a PDF<input type="file" accept=".pdf,application/pdf" onchange="bkPick(this)"></label>
+    <button class="r" onclick="bkStop()" id="bkStopBtn" style="display:none">Stop adding</button>
+  </div>
+  <div id="bkProg"><div></div></div>
+  <div class="bkbar">
+    <button class="s" onclick="bkBack()">&larr; Back (remove last photo)</button>
+    <button class="s" onclick="bkNext()">Next book &rarr;</button>
+    <button class="s" onclick="bkClearBook()">Clear this book</button>
+    <button class="r" onclick="bkClearAll()">Clear all</button>
+  </div>
+  <div class="bkcount" id="bkCount"></div>
+  <div id="bkMsg"></div>
+  <div id="bkGroups"></div>
+  <p style="margin-top:10px"><button class="g" id="bkSubmit" onclick="bkUpload()">Upload the books</button>
+   <button class="y" onclick="bkRetry()">Upload the failed ones again</button></p>
+  <h2 style="margin-top:14px">After uploading - reading by Gemini</h2>
+  <p style="margin:0 0 6px;font-size:13px">The books are read one after another, even if you close this page. When a book is <b>Ready</b> it is in tab 3 (Verify and submit).</p>
+  <p><button class="s" onclick="bkQueueRefresh()">Refresh</button></p>
+  <div id="bkQueue" class="bkq"></div>
+</div>
+
 <!-- 3: verify -->
 <div id="p3" class="box" style="display:none">
   <h2>Verify the batch / ಪರಿಶೀಲಿಸಿ</h2>
   <p style="margin:0 0 8px"><button class="s" onclick="loadBatch()">Refresh</button>
    <button class="y" onclick="classifyAll()" id="clsAll">Suggest class for all</button>
    <button class="y" onclick="locAll()" id="locAllBtn">Fill locations</button>
+   <button class="y" id="authBtn" onclick="makeAuthorPhotos()" style="display:none">Make author photos</button>
    <button class="g" onclick="submitBatch(false)" id="subBtn">Submit batch to main sheet</button></p>
   <div id="vSum"></div>
   <div style="overflow-x:auto"><div id="vTable"><i>Press Refresh.</i></div></div>
@@ -137,6 +206,10 @@ table.bt img{width:42px;border-radius:4px}
 <datalist id="genreList"><option value="ಕಾದಂಬರಿ"><option value="ಕಥಾ ಸಂಕಲನ"><option value="ಕವನ ಸಂಕಲನ"><option value="ಜೀವನ ಚರಿತ್ರೆ"><option value="ಪ್ರಬಂಧ"><option value="ನಾಟಕ"><option value="ಮಕ್ಕಳ ಸಾಹಿತ್ಯ"></datalist>
 </div>
 <canvas id="work" style="display:none"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script>
 var $ = function (i) { return document.getElementById(i); };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -183,7 +256,7 @@ async function refreshInit() {
 }
 
 // ---------------- tabs ----------------
-function tab(n) { for (var i = 1; i <= 3; i++) { $('p' + i).style.display = i === n ? 'block' : 'none'; $('t' + i).className = i === n ? 'on' : ''; } if (n === 3) loadBatch(); window.scrollTo(0, 0); }
+function tab(n) { for (var i = 1; i <= 4; i++) { $('p' + i).style.display = i === n ? 'block' : 'none'; $('t' + i).className = i === n ? 'on' : ''; } if (n === 3) loadBatch(); if (n === 4) { bkQueueRefresh(); } window.scrollTo(0, 0); }
 
 // ---------------- batch settings ----------------
 function fyList() {
@@ -326,7 +399,7 @@ async function addBook() {
     }
     rec.authorOf = authOf;
     var imgs = {};
-    if (BIG.cover) imgs.cover = await shrinkTo(BIG.cover, 360, 15);
+    if (BIG.cover) imgs.cover = await shrinkTo(BIG.cover, 640, 45);
     if (BIG.imprint) imgs.imprint = await shrinkTo(BIG.imprint, 800, 40);
     if (authImg) imgs.author = authImg;
     var sizes = Object.keys(imgs).map(function (k) { return k + ' ' + Math.round(imgs[k].length * 0.75 / 1024) + ' KB'; }).join(', ');
@@ -347,7 +420,7 @@ function driveId(u) { var m = String(u || '').match(/\/d\/([-\w]{15,})/) || Stri
 function thumb(u, w) { var id = driveId(u); return id ? 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 100) : ''; }
 async function loadBatch(quiet) {
   if (!PIN) return;
-  try { LIST = await nb({ action: 'blist', batch: BATCH.id }); renderBatch(); } catch (e) { if (!quiet) $('vTable').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+  try { LIST = await nb({ action: 'blist', batch: BATCH.id }); renderBatch(); updAuthBtn(); } catch (e) { if (!quiet) $('vTable').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
 }
 var DEC = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T'];
 function yearCode(y) {
@@ -461,4 +534,283 @@ function afterSubmit(nextStart) { BATCH.id = 'B' + Date.now().toString(36).toUpp
 // ---------------- start ----------------
 initBatch(); buildSlots(); buildTiles(); copiesChg(); tab(1);
 try { $('pin').value = sessionStorage.getItem('rk_pin') || ''; $('enteredBy').value = localStorage.getItem('rk_by') || ''; if ($('pin').value) { PIN = $('pin').value; refreshInit(); } } catch (e) {}
+</script>
+<script>
+// ======================= PHOTO BASKET =======================
+var BK = { groups: [], open: false, mode: 'auto', fix: { l: 5, t: 5, r: 5, b: 5 }, chain: Promise.resolve(), todo: 0, done: 0, stop: false, cards: 0, gid: 0, pid: 0, skipped: [], poll: null, sample: null };
+var BK_MODES = [['auto', 'Auto - find the book'], ['fixed', 'Fixed box'], ['none', 'Do not cut']];
+var BK_MAXSIDE = 900, BK_MAXKB = 70, BK_QR = 'LIBNB-NEXT';
+
+function bkModes() {
+  $('bkModes').innerHTML = BK_MODES.map(function (m) { return '<div class="tile' + (BK.mode === m[0] ? ' on' : '') + '" onclick="bkSetMode(\'' + m[0] + '\')">' + m[1] + '</div>'; }).join('');
+  $('bkFix').style.display = BK.mode === 'fixed' ? 'block' : 'none';
+}
+function bkSetMode(m) { BK.mode = m; bkModes(); }
+function bkFixChg() {
+  ['l', 't', 'r', 'b'].forEach(function (k) { BK.fix[k] = +$('fx_' + k).value; $('fx_' + k + '_v').textContent = BK.fix[k]; });
+  bkDrawPrev();
+}
+function bkSample(inp) {
+  var f = inp.files && inp.files[0]; if (!f) return;
+  createImageBitmap(f).then(function (bmp) { BK.sample = bmp; bkDrawPrev(); }).catch(function () { alert('Could not open this picture.'); });
+  inp.value = '';
+}
+function bkDrawPrev() {
+  var c = $('bkPrev'), b = BK.sample; if (!b) return;
+  var s = Math.min(1, 420 / Math.max(b.width, b.height)); c.width = Math.round(b.width * s); c.height = Math.round(b.height * s);
+  var x = c.getContext('2d'); x.drawImage(b, 0, 0, c.width, c.height);
+  var f = BK.fix, l = c.width * f.l / 100, t = c.height * f.t / 100, r = c.width * (1 - f.r / 100), bt = c.height * (1 - f.b / 100);
+  x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, 0, c.width, t); x.fillRect(0, bt, c.width, c.height - bt); x.fillRect(0, t, l, bt - t); x.fillRect(r, t, c.width - r, bt - t);
+  x.strokeStyle = '#ffd24a'; x.lineWidth = 3; x.strokeRect(l, t, r - l, bt - t);
+}
+
+// ---------- the card ----------
+function bkCard() {
+  if (typeof qrcode !== 'function') { alert('The QR code tool did not load. Check the internet and reload the page.'); return; }
+  var q = qrcode(0, 'M'); q.addData(BK_QR); q.make();
+  var svg = q.createSvgTag({ cellSize: 14, margin: 2, scalable: true });
+  var w = window.open('', '_blank');
+  if (!w) { alert('The card window was blocked. Allow pop-ups for this page and try again.'); return; }
+  w.document.write('<!doctype html><meta charset="utf-8"><title>Next book card</title><style>body{font-family:Arial,sans-serif;text-align:center;margin:0;padding:12mm}.card{border:4px solid #000;border-radius:12px;padding:10mm;max-width:170mm;margin:0 auto}svg{width:110mm;height:110mm}h1{font-size:34px;margin:8px 0}h2{font-size:26px;margin:4px 0}p{font-size:15px}button{font-size:18px;padding:10px 18px;margin:10px}@media print{button{display:none}}</style>' +
+    '<div class="card"><h1>NEXT BOOK</h1><h2>ಮುಂದಿನ ಪುಸ್ತಕ</h2>' + svg + '<p>Photograph this card <b>before the first photo of every new book</b>.<br>Keep the whole card inside the photo.</p></div>' +
+    '<button onclick="window.print()">Print</button>');
+  w.document.close();
+}
+
+// ---------- adding photos ----------
+function natCmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+function bkBusy(on) { $('bkStopBtn').style.display = on ? 'inline-block' : 'none'; $('bkProg').style.display = on ? 'block' : 'none'; }
+function bkProg() { var p = BK.todo ? Math.round(100 * BK.done / BK.todo) : 0; $('bkProg').firstChild.style.width = p + '%'; if (BK.todo) $('bkMsg').innerHTML = '<div class="msg i">Preparing photo ' + Math.min(BK.done + 1, BK.todo) + ' of ' + BK.todo + '...</div>'; }
+function bkStop() { BK.stop = true; }
+function bkPick(inp) {
+  var files = Array.prototype.slice.call(inp.files || []); inp.value = '';
+  if (!files.length) return;
+  files.sort(function (a, b) { return natCmp(a.name, b.name); });
+  BK.chain = BK.chain.then(function () { return bkProcessFiles(files); });
+}
+async function bkProcessFiles(files) {
+  BK.stop = false; BK.skipped = []; BK.todo = 0; BK.done = 0; bkBusy(true);
+  var jobs = [];
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i], n = f.name.toLowerCase();
+    try {
+      if (/\.zip$/.test(n)) { var zs = await bkZipJobs(f); jobs = jobs.concat(zs); }
+      else if (/\.pdf$/.test(n)) { var ps = await bkPdfJobs(f); jobs = jobs.concat(ps); }
+      else jobs.push({ name: f.name, get: function (ff) { return function () { return Promise.resolve(ff); }; }(f) });
+    } catch (e) { BK.skipped.push(f.name + ' (' + e.message + ')'); }
+  }
+  BK.todo = jobs.length; bkProg();
+  var added = 0;
+  for (var j = 0; j < jobs.length; j++) {
+    if (BK.stop) break;
+    try { var blob = await jobs[j].get(); if (await bkAddImage(blob, jobs[j].name)) added++; }
+    catch (e) { BK.skipped.push(jobs[j].name + ' (' + e.message + ')'); }
+    BK.done++; bkProg(); if (j % 5 === 4) bkRender();
+    await new Promise(function (r) { setTimeout(r, 0); });
+  }
+  bkBusy(false); bkRender();
+  $('bkMsg').innerHTML = '<div class="msg ' + (BK.skipped.length ? 'w' : 'ok') + '">' + (BK.stop ? 'Stopped. ' : '') + added + ' photo(s) added.' + (BK.skipped.length ? '<br><b>Not added:</b> ' + BK.skipped.slice(0, 8).map(esc).join('; ') + (BK.skipped.length > 8 ? ' ...' : '') : '') + '</div>';
+}
+async function bkZipJobs(file) {
+  if (typeof JSZip === 'undefined') throw new Error('ZIP tool did not load');
+  var z = await JSZip.loadAsync(file), names = [];
+  z.forEach(function (p, e) { if (!e.dir && /\.(jpe?g|png|webp|bmp|gif)$/i.test(p) && !/(^|\/)(__MACOSX|\.)/.test(p)) names.push(p); });
+  names.sort(natCmp);
+  if (!names.length) throw new Error('no pictures inside');
+  return names.map(function (p) { return { name: p, get: function () { return z.file(p).async('blob').then(function (b) { return new Blob([b], { type: /png$/i.test(p) ? 'image/png' : 'image/jpeg' }); }); } }; });
+}
+async function bkPdfJobs(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF tool did not load');
+  try { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; } catch (e) {}
+  var pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise, jobs = [];
+  for (var p = 1; p <= pdf.numPages; p++) {
+    jobs.push({ name: file.name + ' page ' + p, get: function (pn) { return function () {
+      return pdf.getPage(pn).then(function (pg) {
+        var v1 = pg.getViewport({ scale: 1 }), sc = Math.min(3, 1800 / Math.max(v1.width, v1.height)), v = pg.getViewport({ scale: sc });
+        var c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
+        return pg.render({ canvasContext: c.getContext('2d'), viewport: v }).promise.then(function () { return new Promise(function (res) { c.toBlob(res, 'image/jpeg', 0.9); }); });
+      });
+    }; }(p) });
+  }
+  return jobs;
+}
+
+function bkQrIn(bmp) {
+  if (typeof jsQR !== 'function') return false;
+  var s = Math.min(1, 900 / Math.max(bmp.width, bmp.height)), w = Math.max(1, Math.round(bmp.width * s)), h = Math.max(1, Math.round(bmp.height * s));
+  var c = document.createElement('canvas'); c.width = w; c.height = h; var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(bmp, 0, 0, w, h);
+  var r = jsQR(x.getImageData(0, 0, w, h).data, w, h);
+  return !!(r && r.data && r.data.indexOf('LIBNB') === 0);
+}
+function bkDetect(bmp) {   // find the book on a plain background -> {x,y,w,h} in source pixels, or null
+  var s = Math.min(1, 360 / Math.max(bmp.width, bmp.height)), w = Math.max(8, Math.round(bmp.width * s)), h = Math.max(8, Math.round(bmp.height * s));
+  var c = document.createElement('canvas'); c.width = w; c.height = h; var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(bmp, 0, 0, w, h);
+  var d = x.getImageData(0, 0, w, h).data, R = [], G = [], B = [], ring = 3;
+  for (var yy = 0; yy < h; yy++) for (var xx = 0; xx < w; xx++) {
+    if (yy < ring || yy >= h - ring || xx < ring || xx >= w - ring) { var i = (yy * w + xx) * 4; R.push(d[i]); G.push(d[i + 1]); B.push(d[i + 2]); }
+  }
+  function med(a) { a.sort(function (p, q) { return p - q; }); return a[a.length >> 1]; }
+  var br = med(R.slice()), bg = med(G.slice()), bb = med(B.slice());
+  var dev = 0; for (var k = 0; k < R.length; k++) dev += Math.abs(R[k] - br) + Math.abs(G[k] - bg) + Math.abs(B[k] - bb); dev = dev / R.length;
+  var thr = Math.max(60, dev * 4);
+  var rows = new Array(h).fill(0), cols = new Array(w).fill(0);
+  for (var y = 0; y < h; y++) for (var x2 = 0; x2 < w; x2++) {
+    var j = (y * w + x2) * 4;
+    if (Math.abs(d[j] - br) + Math.abs(d[j + 1] - bg) + Math.abs(d[j + 2] - bb) > thr) { rows[y]++; cols[x2]++; }
+  }
+  var rmin = w * 0.05, cmin = h * 0.05, y0 = -1, y1 = -1, x0 = -1, x1 = -1;
+  for (var a = 0; a < h; a++) if (rows[a] >= rmin) { if (y0 < 0) y0 = a; y1 = a; }
+  for (var b = 0; b < w; b++) if (cols[b] >= cmin) { if (x0 < 0) x0 = b; x1 = b; }
+  if (y0 < 0 || x0 < 0) return null;
+  var area = (x1 - x0 + 1) * (y1 - y0 + 1) / (w * h);
+  if (area < 0.15 || area > 0.97) return null;
+  var mx = w * 0.015, my = h * 0.015;
+  x0 = Math.max(0, x0 - mx); y0 = Math.max(0, y0 - my); x1 = Math.min(w - 1, x1 + mx); y1 = Math.min(h - 1, y1 + my);
+  return { x: x0 / s, y: y0 / s, w: (x1 - x0 + 1) / s, h: (y1 - y0 + 1) / s };
+}
+function bkBox(bmp) {
+  if (BK.mode === 'none') return { box: { x: 0, y: 0, w: bmp.width, h: bmp.height }, note: '' };
+  if (BK.mode === 'fixed') { var f = BK.fix; return { box: { x: bmp.width * f.l / 100, y: bmp.height * f.t / 100, w: bmp.width * (1 - (f.l + f.r) / 100), h: bmp.height * (1 - (f.t + f.b) / 100) }, note: '' }; }
+  var bx = bkDetect(bmp);
+  return bx ? { box: bx, note: '' } : { box: { x: 0, y: 0, w: bmp.width, h: bmp.height }, note: 'book not found - whole photo kept' };
+}
+function bkJpeg(bmp, box) {
+  var side = BK_MAXSIDE, out = '';
+  for (var round = 0; round < 6; round++) {
+    var sc = Math.min(1, side / Math.max(box.w, box.h)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(box.w * sc)); c.height = Math.max(1, Math.round(box.h * sc));
+    c.getContext('2d').drawImage(bmp, box.x, box.y, box.w, box.h, 0, 0, c.width, c.height);
+    for (var q = 0.86; q >= 0.4; q -= 0.08) { out = c.toDataURL('image/jpeg', q); if (out.length * 0.75 / 1024 <= BK_MAXKB) return out; }
+    side *= 0.85;
+  }
+  return out;
+}
+async function bkAddImage(blob, name) {
+  var bmp;
+  try { bmp = await createImageBitmap(blob); } catch (e) { throw new Error('cannot open this picture'); }
+  try {
+    if (bkQrIn(bmp)) { BK.cards++; BK.open = false; return false; }
+    var b = bkBox(bmp), url = bkJpeg(bmp, b.box);
+    if (!url) throw new Error('could not shrink');
+    var g = BK.open && BK.groups.length ? BK.groups[BK.groups.length - 1] : null;
+    if (!g || g.status !== 'draft') { g = { id: ++BK.gid, photos: [], status: 'draft', msg: '' }; BK.groups.push(g); }
+    BK.open = true;
+    g.photos.push({ id: ++BK.pid, url: url, kb: Math.round(url.length * 0.75 / 1024), note: b.note, name: name });
+    return true;
+  } finally { try { bmp.close(); } catch (e) {} }
+}
+
+// ---------- the groups ----------
+function bkStat() {
+  var photos = 0, books = 0, up = 0, fail = 0, wait = 0;
+  BK.groups.forEach(function (g) { if (!g.photos.length) return; books++; photos += g.photos.length; if (g.status === 'queued') up++; else if (g.status === 'failed') fail++; else wait++; });
+  return { photos: photos, books: books, up: up, fail: fail, wait: wait };
+}
+function bkRender() {
+  var s = bkStat();
+  $('bkCount').innerHTML = '<div>Books <b>' + s.books + '</b></div><div>Photos <b>' + s.photos + '</b></div><div>"Next book" cards <b>' + BK.cards + '</b></div><div class="good">Uploaded <b>' + s.up + '</b></div><div class="' + (s.fail ? 'bad' : '') + '">Failed <b>' + s.fail + '</b></div><div>Not sent yet <b>' + s.wait + '</b></div>';
+  $('bkGroups').innerHTML = BK.groups.map(function (g, gi) {
+    if (!g.photos.length) return '';
+    var st = { draft: 'not uploaded yet', uploading: 'uploading...', queued: 'uploaded - waiting to be read', failed: 'UPLOAD FAILED: ' + esc(g.msg) }[g.status];
+    var editable = g.status === 'draft' || g.status === 'failed';
+    return '<div class="bkg ' + g.status + '"><div class="bkh"><b>Book ' + (gi + 1) + '</b> &middot; ' + g.photos.length + ' photo(s) &middot; ' + st +
+      (editable && gi > 0 ? ' <button onclick="bkJoin(' + g.id + ')">Join with the book before</button>' : '') + (editable ? ' <button onclick="bkDelGroup(' + g.id + ')">Remove this book</button>' : '') + '</div><div class="bkp">' +
+      g.photos.map(function (p, pi) {
+        return '<div class="ph"><img src="' + p.url + '" alt="">' + p.kb + ' KB' + (p.note ? '<br><span style="color:#b3261e">' + esc(p.note) + '</span>' : '') +
+          (editable ? '<br><button class="x" onclick="bkDelPhoto(' + g.id + ',' + p.id + ')">&#10005;</button>' + (pi > 0 ? '<button onclick="bkSplit(' + g.id + ',' + p.id + ')">new book from here</button>' : '') : '') + '</div>';
+      }).join('') + '</div></div>';
+  }).join('');
+  $('bkSubmit').textContent = 'Upload ' + (s.wait + s.fail ? (s.wait + s.fail) + ' book(s)' : 'the books');
+}
+function bkG(id) { for (var i = 0; i < BK.groups.length; i++) if (BK.groups[i].id === id) return i; return -1; }
+function bkDelPhoto(gid, pid) { var gi = bkG(gid); if (gi < 0) return; var g = BK.groups[gi]; g.photos = g.photos.filter(function (p) { return p.id !== pid; }); if (!g.photos.length) BK.groups.splice(gi, 1); bkRender(); }
+function bkDelGroup(gid) { var gi = bkG(gid); if (gi >= 0) BK.groups.splice(gi, 1); bkRender(); }
+function bkJoin(gid) { var gi = bkG(gid); if (gi < 1) return; var a = BK.groups[gi - 1], b = BK.groups[gi]; if (a.status !== 'draft' && a.status !== 'failed') { alert('The book before is already sent.'); return; } a.photos = a.photos.concat(b.photos); a.status = 'draft'; BK.groups.splice(gi, 1); bkRender(); }
+function bkSplit(gid, pid) {
+  var gi = bkG(gid); if (gi < 0) return; var g = BK.groups[gi], k = -1; g.photos.forEach(function (p, i) { if (p.id === pid) k = i; });
+  if (k < 1) return; var rest = g.photos.splice(k); BK.groups.splice(gi + 1, 0, { id: ++BK.gid, photos: rest, status: 'draft', msg: '' }); g.status = 'draft'; bkRender();
+}
+function bkBack() {
+  var gi = BK.groups.length - 1; if (gi < 0) return; var g = BK.groups[gi];
+  if (g.status !== 'draft') { $('bkMsg').innerHTML = '<div class="msg w">The last book is already sent.</div>'; return; }
+  g.photos.pop(); if (!g.photos.length) BK.groups.pop(); BK.open = BK.groups.length > 0; bkRender();
+  $('bkMsg').innerHTML = '<div class="msg i">Last photo removed.</div>';
+}
+function bkNext() { BK.open = false; $('bkMsg').innerHTML = '<div class="msg i">This book is closed. The next photo starts a new book.</div>'; }
+function bkClearBook() {
+  var gi = BK.groups.length - 1; if (gi < 0) return; var g = BK.groups[gi];
+  if (g.status !== 'draft' && g.status !== 'failed') { $('bkMsg').innerHTML = '<div class="msg w">The last book is already sent.</div>'; return; }
+  BK.groups.pop(); BK.open = false; bkRender(); $('bkMsg').innerHTML = '<div class="msg i">The last book was removed. Take its photos again.</div>';
+}
+function bkClearAll() {
+  var s = bkStat(); if (s.wait + s.fail && !confirm('Remove ALL ' + (s.wait + s.fail) + ' book(s) that are not sent yet?')) return;
+  BK.groups = BK.groups.filter(function (g) { return g.status === 'queued' || g.status === 'uploading'; }); BK.open = false; BK.cards = 0; bkRender();
+}
+
+// ---------- upload ----------
+async function bkUploadOne(g) {
+  g.status = 'uploading'; g.msg = ''; bkRender();
+  for (var attempt = 0; attempt < 3; attempt++) {
+    try {
+      var r = await nb({ action: 'qadd', batch: BATCH.id, by: $('enteredBy').value.trim(), lang: BATCH.lang, photos: g.photos.map(function (p) { return p.url; }) });
+      g.status = 'queued'; g.qkey = r.key; return true;
+    } catch (e) { g.msg = e.message; if (/PIN|Not allowed|Too many|At most/i.test(e.message)) break; await new Promise(function (res) { setTimeout(res, 1500 * (attempt + 1)); }); }
+  }
+  g.status = 'failed'; return false;
+}
+async function bkUpload() {
+  if (!PIN) { alert('Enter the PIN and press Connect first.'); return; }
+  var todo = BK.groups.filter(function (g) { return g.photos.length && (g.status === 'draft' || g.status === 'failed'); });
+  if (!todo.length) { $('bkMsg').innerHTML = '<div class="msg w">Nothing to upload.</div>'; return; }
+  var tooMany = todo.filter(function (g) { return g.photos.length > 8; });
+  if (tooMany.length) { $('bkMsg').innerHTML = '<div class="msg er">Book ' + (BK.groups.indexOf(tooMany[0]) + 1) + ' has more than 8 photos. Use "new book from here" to split it, then upload again.</div>'; return; }
+  if (BK.uploading) { $('bkMsg').innerHTML = '<div class="msg w">Uploading is still running. Wait until it finishes.</div>'; return; }
+  BK.uploading = true; $('bkSubmit').disabled = true; var ok = 0, bad = 0, i = 0;
+  async function worker() { while (i < todo.length) { var g = todo[i++]; if (await bkUploadOne(g)) ok++; else bad++; bkRender(); } }
+  await Promise.all([worker(), worker()]);
+  BK.uploading = false; $('bkSubmit').disabled = false; bkRender();
+  var imgs = todo.reduce(function (a, g) { return a + (g.status === 'queued' ? g.photos.length : 0); }, 0);
+  $('bkMsg').innerHTML = '<div class="msg ' + (bad ? 'er' : 'ok') + '"><b>' + ok + ' book(s) uploaded</b> (' + imgs + ' photos)' + (bad ? ', <b>' + bad + ' FAILED</b> - press "Upload the failed ones again".' : '. They are being read now.') + '</div>';
+  bkQueueRefresh(); bkPoll(true);
+}
+function bkRetry() { bkUpload(); }
+
+// ---------- the queue on the server ----------
+async function bkQueueRefresh() {
+  if (!PIN) return;
+  try {
+    var q = await nb({ action: 'qlist', batch: BATCH.id }), c = q.counts;
+    var h = '<div><b>This batch:</b> ' + q.total + ' book(s) - Waiting <b>' + c.Waiting + '</b>, Reading <b>' + c.Reading + '</b>, Ready <b>' + c.Ready + '</b>, Failed <b>' + c.Failed + '</b></div>';
+    q.items.filter(function (x) { return x.status === 'Failed'; }).forEach(function (x) {
+      h += '<div>' + esc(x.key) + ' - ' + esc(x.msg) + ' <button style="padding:3px 8px;font-size:12px" onclick="bkQ(\'qretry\',\'' + x.key + '\')">Try again</button> <button class="r" style="padding:3px 8px;font-size:12px" onclick="bkQ(\'qremove\',\'' + x.key + '\')">Remove</button></div>';
+    });
+    if (c.Waiting && !c.Reading) h += '<div style="color:#8a5a00">If nothing is read for more than 10 minutes, the Gemini free limit for today may be used up. It continues by itself tomorrow.</div>';
+    $('bkQueue').innerHTML = h;
+    if (c.Ready) loadBatch(true);
+    if (!c.Waiting && !c.Reading) bkPoll(false);
+  } catch (e) { $('bkQueue').innerHTML = '<div class="msg er">' + esc(e.message) + '</div>'; }
+}
+async function bkQ(act, key) { try { await nb({ action: act, key: key }); } catch (e) { alert(e.message); } bkQueueRefresh(); bkPoll(true); }
+function bkPoll(on) { if (BK.poll) { clearInterval(BK.poll); BK.poll = null; } if (on) BK.poll = setInterval(bkQueueRefresh, 15000); }
+
+// ---------- author portraits cut from the stored back-cover photo ----------
+function updAuthBtn() {
+  var n = LIST.filter(function (b) { return b.data.authorBox && b.data.authorSrc && !(b.data.urls && b.data.urls.author); }).length, bt = $('authBtn');
+  if (bt) { bt.style.display = n ? 'inline-block' : 'none'; bt.textContent = 'Make author photos (' + n + ')'; }
+}
+async function makeAuthorPhotos() {
+  var todo = LIST.filter(function (b) { return b.data.authorBox && b.data.authorSrc && !(b.data.urls && b.data.urls.author); }), bt = $('authBtn'), done = 0, bad = 0;
+  bt.disabled = true;
+  for (var i = 0; i < todo.length; i++) {
+    bt.textContent = 'Working ' + (i + 1) + '/' + todo.length;
+    try {
+      var d = todo[i].data, r = await nb({ action: 'qphoto', id: d.authorSrc }), src = await shrinkTo(await cropBox(r.dataUrl, d.authorBox), 170, 9);
+      if (src) { await nb({ action: 'bupdate', key: todo[i].key, rec: { authorOf: d.authorOf || 'author' }, images: { author: src } }); done++; } else bad++;
+    } catch (e) { bad++; }
+  }
+  bt.disabled = false; await loadBatch();
+  $('subMsg').innerHTML = '<div class="msg ' + (bad ? 'w' : 'ok') + '">Author photos made: ' + done + (bad ? ', not possible: ' + bad : '') + '.</div>';
+}
+bkModes(); bkFixChg(); bkRender();
+
 </script></body></html>
